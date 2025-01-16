@@ -1,0 +1,456 @@
+/* Layout */
+.scheduler-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 256px;
+  background-color: #111827;
+  color: white;
+  padding: 1rem;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.channel-selector {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  background-color: #1f2937;
+  border-radius: 0.375rem;
+  margin-bottom: 2rem;
+}
+
+/* Mini Calendar */
+.mini-calendar {
+  margin-bottom: 2rem;
+}
+
+.mini-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.mini-calendar-day {
+  padding: 0.25rem;
+}
+
+.mini-calendar-day.active {
+  background-color: #2563eb;
+  border-radius: 0.25rem;
+}
+
+/* Source List */
+.source-list {
+  color: #9ca3af;
+}
+
+.source-list-item {
+  padding-left: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.source-list-files {
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.source-list-file {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.source-list-file.active {
+  color: #60a5fa;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+  height: auto;
+  width: auto;
+}
+
+.welcome-header {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+/* Preview Sections */
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.preview-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+}
+
+.preview-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: black;
+}
+
+.input-preview-title {
+  color: black;
+  margin-top: auto;
+  font-size: 14px;
+}
+
+.preview-content {
+  position: relative;
+  background-color: #111827;
+  border-radius: 0.5rem;
+  aspect-ratio: 16/9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-button {
+  position: absolute;
+  color: white;
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Calendar Section */
+.calendar-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-input {
+  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-button {
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+}
+
+.nav-button:hover {
+  background-color: #f3f4f6;
+}
+
+.today-button {
+  padding: 0.5rem 1rem;
+  background-color: #f3f4f6;
+  border-radius: 0.375rem;
+}
+
+/* Week Grid */
+.week-grid {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.week-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.week-header-cell {
+  padding: 1rem;
+  text-align: center;
+  border-right: 1px solid #e5e7eb;
+}
+
+.week-header-cell:last-child {
+  border-right: none;
+}
+
+.week-header-cell.active {
+  background-color: #2563eb;
+  color: white;
+}
+
+/* Time Grid */
+.time-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+}
+
+.time-column {
+  border-right: 1px solid #e5e7eb;
+}
+
+.time-slot {
+  height: 3rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-right: 0.5rem;
+  text-align: right;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.day-column {
+  border-right: 1px solid #e5e7eb;
+  min-height: 42rem;  /* 14 time slots * 3rem */
+}
+
+.day-column:last-child {
+  border-right: none;
+}
+
+/* Events */
+.event {
+  margin: 0.25rem;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.event.demo {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.event.meeting {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.event.planning {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.event-time {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .scheduler-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    max-width: none;
+  }
+
+  .preview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .calendar-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+}
+
+/* Utilities */
+.publish-button {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #6366f1;
+  color: white;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.publish-button:hover {
+  background-color: #4f46e5;
+}
+.react-player {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.preview-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+}
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.popup {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+}
+
+.popup h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.popup input {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.cancel-button,
+.upload-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.cancel-button {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.upload-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+.upload-button:hover {
+  background-color: #45a049;
+}
+.success-message {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: green;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000; /* Ensure it's on top */
+}
+
+
+.mini-calendar,
+.preview-grid {
+  display: flex;
+  flex-direction: column;
+  width: 100%; /* Ensure both are taking full available width */
+}
+
+.mini-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.preview-title {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.preview-content {
+  width: 100%;
+  max-width: 100%; /* Ensure it does not go beyond parent container width */
+}
+/* Add this to your CSS */
+.react-big-calendar {
+  background-color: white !important;
+}

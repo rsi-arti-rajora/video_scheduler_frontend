@@ -1,0 +1,40 @@
+.custom-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;  /* Optional: for better visibility of the toolbar */
+  }
+  
+  .search-box input {
+    padding: 5px;
+    width: 200px;
+    margin: 0; /* Remove any default margin that might misalign */
+  }
+  
+  .day-week-selection select, 
+  .week-preview select {
+    padding: 5px;
+    margin: 0; /* Ensure no margin causing misalignment */
+  }
+  
+  .today-button {
+    padding: 5px 10px;
+    margin: 0; /* Ensure no margin causing misalignment */
+  }
+  
+  .custom-toolbar span {
+    flex-grow: 1;
+    text-align: center;
+  }
+  
+  .search-box, .day-week-selection, .week-preview {
+    display: flex;
+    align-items: center;
+  }
+  
+  .custom-toolbar select {
+    font-size: 14px;
+  }
+  
