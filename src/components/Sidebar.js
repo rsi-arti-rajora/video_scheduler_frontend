@@ -1,58 +1,16 @@
-import React, { useState, useRef } from 'react';
-import { Box, Button, Select, MenuItem, Typography } from '@mui/material';
-import FileList from './FileList'; // Assuming FileList handles individual list rendering
-import UploadDialog from './UploadDialog';
-import VideoPreview from './VideoPreview';
+import React, { useState } from 'react';
+import { Box, Button, Typography } from '@mui/material';
 import { Add } from '@mui/icons-material';
+import useVideoUpload from '../hooks/useVideoUpload';
+import UploadDialog from './UploadDialog';
 import { CalendarMonth } from '@mui/icons-material';
-
+import FileList from './FileList'; // Assuming FileList handles individual list rendering
+import VideoPreview from './VideoPreview';
+import MiniCalendar from './MiniCalendar';
 const Sidebar = () => {
-  const [selectedChannel, setSelectedChannel] = useState('');
-  const [lists, setLists] = useState([
-    {
-      id: 1,
-      name: 'ListName 1',
-      expanded: true,
-      files: [
-        { id: 1, name: 'File-1.mp4' },
-        { id: 2, name: 'File-2.mp4', selected: true },
-        { id: 3, name: 'File-3.mp4' },
-      ],
-    },
-    {
-      id: 2,
-      name: 'ListName 2',
-      expanded: false,
-      files: [
-        { id: 1, name: 'File-1.mp4' },
-        { id: 2, name: 'File-2.mp4' },
-      ],
-    },
-    {
-      id: 3,
-      name: 'ListName 3',
-      expanded: false,
-      files: [
-        { id: 1, name: 'File-1.mp4' },
-        { id: 2, name: 'File-2.mp4' },
-      ],
-    },
-    {
-      id: 4,
-      name: 'ListName 4',
-      expanded: false,
-      files: [
-        { id: 1, name: 'File-1.mp4' },
-        { id: 2, name: 'File-2.mp4' },
-      ],
-    }
-  ]);
-
-  const [selectedVideo, setSelectedVideo] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const fileInputRef = useRef(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
@@ -63,55 +21,19 @@ const Sidebar = () => {
   const daysInMonth = getDaysInMonth(currentMonth, currentYear);
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('video/')) {
-      setUploadStatus('Please select a valid video file');
-      return;
+  const [lists, setLists] = useState([
+    {
+      id: 1,
+      name: 'ListName 1',
+      expanded: true,
+      files: [
+        { id: 1, name: 'File-1.mp4' },
+        { id: 2, name: 'File-2.mp4', selected: true },
+        { id: 3, name: 'File-3.mp4' },
+      ],
     }
-
-    setIsUploading(true);
-    setUploadStatus('Uploading...');
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      const newVideo = {
-        id: Date.now(),
-        name: file.name,
-        selected: true,
-      };
-
-      setLists((prev) =>
-        prev.map((list) => {
-          if (list.id === 1) { // Always add to Folder 1 for this example
-            return {
-              ...list,
-              expanded: true,
-              files: [...list.files, newVideo],
-            };
-          }
-          return list;
-        })
-      );
-
-      setSelectedVideo(URL.createObjectURL(file));
-      setUploadStatus('Video uploaded successfully!');
-      setShowUploadDialog(false);
-
-      setTimeout(() => setUploadStatus(''), 3000);
-    } catch (error) {
-      setUploadStatus('Upload failed. Please try again.');
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
+  ]);
+  const { fileInputRef, isUploading, uploadStatus, handleFileUpload } = useVideoUpload(); // Use the handleFileUpload from the hook
   const toggleList = (listId) => {
     setLists((prev) =>
       prev.map((list) => (list.id === listId ? { ...list, expanded: !list.expanded } : list))
@@ -129,9 +51,33 @@ const Sidebar = () => {
       }))
     );
   };
+  const handleUploadSuccess = (fileUrl, file) => {
+    const newVideo = {
+      id: Date.now(),
+      name: file.name,
+      selected: true,
+      url: fileUrl,
+    };
+
+    setLists((prev) =>
+      prev.map((list) => {
+        if (list.id === 1) {
+          return {
+            ...list,
+            expanded: true,
+            files: [...list.files, newVideo],
+          };
+        }
+        return list;
+      })
+    );
+
+    setShowUploadDialog(false);
+  };
 
   return (
-    <Box display="flex" minHeight="100vh" bgcolor="gray.100">
+    <>
+     <Box display="flex" minHeight="100vh" bgcolor="gray.100">
       
       <Box width={300} bgcolor="black" color="white" p={2}>
         <Box display="flex" alignItems="center" mb={4} >
@@ -141,18 +87,7 @@ const Sidebar = () => {
           <Typography variant="h6"  sx={{ fontSize: 20}}>Content Scheduling</Typography>
         </Box>
 
-        <div className="mini-calendar">
-          <div className="mini-calendar-grid">
-            {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(day => (
-              <div key={day} className="mini-calendar-day">{day}</div>
-            ))}
-            {days.map(day => (
-              <div key={day} className={`mini-calendar-day ${day === 14 ? 'active' : ''}`}>
-                {day}
-              </div>
-            ))}
-          </div>
-        </div>
+        <MiniCalendar />
         <div className="preview-grid">
           <div className="preview-card">
             <h2 className="preview-title">Input Preview</h2>
@@ -189,6 +124,38 @@ const Sidebar = () => {
         onClose={() => setShowUploadDialog(false)}
       />
     </Box>
+      {/* <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+        <Typography variant="subtitle2">Source Input Folders</Typography>
+        <Box>
+          <Button 
+            onClick={() => setShowUploadDialog(true)} 
+            startIcon={<Add />} 
+            color="inherit"
+          >
+            Add
+          </Button>
+        </Box>
+      </Box> */}
+
+      {/* <UploadDialog
+        isOpen={showUploadDialog}
+        isUploading={isUploading}
+        uploadStatus={uploadStatus}
+        fileInputRef={fileInputRef}
+        handleFileUpload={async (event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            try {
+              const fileUrl = await handleFileUpload(event); // Use the handleFileUpload function from the hook
+              handleUploadSuccess(fileUrl, file); // Handle success
+            } catch (error) {
+              // Handle error (if needed)
+            }
+          }
+        }}
+        onClose={() => setShowUploadDialog(false)}
+      /> */}
+    </>
   );
 };
 

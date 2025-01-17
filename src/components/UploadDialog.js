@@ -1,22 +1,70 @@
+// components/UploadDialog.js
 import React from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, Input, Button, CircularProgress, Typography, Box } from '@mui/material';
+import {
+  Box,
+  Button,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress
+} from '@mui/material';
 
-const UploadDialog = ({ isOpen, isUploading, uploadStatus, fileInputRef, handleFileUpload, onClose }) => {
+const UploadDialog = ({ 
+  isOpen, 
+  isUploading, 
+  uploadStatus, 
+  fileInputRef, 
+  handleFileUpload, 
+  onClose 
+}) => {
   return (
-    <Dialog open={isOpen} onClose={onClose}>
+    <Dialog open={isOpen} onClose={!isUploading ? onClose : undefined}>
       <DialogTitle>Upload Video</DialogTitle>
       <DialogContent>
-        <Input type="file" inputRef={fileInputRef} onChange={handleFileUpload} fullWidth />
-        {isUploading && (
-          <Box display="flex" alignItems="center" mt={2}>
-            <CircularProgress size={20} sx={{ mr: 1 }} />
-            <Typography variant="body2">Uploading...</Typography>
-          </Box>
-        )}
-        {uploadStatus && <Typography variant="body2">{uploadStatus}</Typography>}
+        <Box p={2}>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleFileUpload}
+            ref={fileInputRef}
+            disabled={isUploading}
+            style={{ display: 'none' }}
+            id="video-upload-input"
+          />
+          <Button
+            variant="contained"
+            component="label"
+            disabled={isUploading}
+            fullWidth
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Choose Video File
+          </Button>
+          {uploadStatus && (
+            <Typography 
+              color={uploadStatus.includes('failed') ? 'error' : 'textPrimary'}
+              style={{ marginTop: '1rem' }}
+            >
+              {uploadStatus}
+            </Typography>
+          )}
+          {isUploading && (
+            <Box mt={2} display="flex" justifyContent="center">
+              <CircularProgress size={24} />
+            </Box>
+          )}
+        </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button 
+          onClick={onClose} 
+          disabled={isUploading}
+          color="inherit"
+        >
+          Cancel
+        </Button>
       </DialogActions>
     </Dialog>
   );
