@@ -1,28 +1,35 @@
 import React from 'react';
-import { Box, Typography, IconButton } from '@mui/material';
-import { ExpandMore, ExpandLess } from '@mui/icons-material';
-import FileItem from './FileItem'; // Assuming FileItem renders individual files
+import { Box, List, ListItem, ListItemText, Typography } from '@mui/material';
 
-const FileList = ({ list, onToggle, onSelect }) => {
+const FileList = ({ videos, onSelect }) => {
+  videos = videos.map((video) => ({ ...video, selected: false }));
   return (
     <Box>
-      <Box
-        display="flex"
-        alignItems="center"
-        onClick={() => onToggle(list.id)}
-        sx={{ cursor: 'pointer', p: 1, '&:hover': { bgcolor: 'gray.800' } }}
-      >
-        {list.expanded ? <ExpandLess /> : <ExpandMore />}
-        <Typography variant="body2">{list.name}</Typography>
-      </Box>
-
-      {list.expanded && (
-        <Box pl={3}>
-          {list.files.map((file) => (
-            <FileItem key={file.id} file={file} onSelect={() => onSelect(list.id, file.id)} />
-          ))}
-        </Box>
-      )}
+      <Typography variant="subtitle1" sx={{ mb: 2 }}>
+        Video Files
+      </Typography>
+      <List>
+        {videos.map((video) => (
+          <ListItem
+            key={video.id}
+            button
+            selected={video.selected}
+            onClick={() => onSelect(video.id)}
+            sx={{
+              bgcolor: video.selected ? 'primary.main' : 'transparent',
+              color: 'white', // Ensure text color is always white
+              mb: 1,
+              borderRadius: '8px',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                bgcolor: 'primary.light',
+              },
+            }}
+          >
+            <ListItemText primary={video.file_name} sx={{ color: 'white' }} /> {/* Ensure ListItemText is white */}
+          </ListItem>
+        ))}
+      </List>
     </Box>
   );
 };

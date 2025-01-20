@@ -13,7 +13,7 @@ const FileItem = ({ file, onSelect }) => {
       }}
       onClick={onSelect}
     >
-      {file.name}
+      {file.file_name}
     </Box>
   );
 };

@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "./timeline.css"; // Custom styling for exact match
 
+const DragAndDropCalendar = withDragAndDrop(Calendar);
 const localizer = momentLocalizer(moment);
 
-const events = [
+const initialEvents = [
   {
     id: 1,
     title: "Project Demo",
@@ -33,36 +38,24 @@ const events = [
 const CustomToolbar = (toolbar) => {
   return (
     <div className="custom-toolbar">
-  {/* Search Box in the center */}
-  <div className="search-box">
-    <input type="text" placeholder="Search..." />
-  </div>
-
-
-    {/* Date display */}
-    <span>{moment(toolbar.date).format("D MMMM YYYY")}</span>
-
-
-  {/* Day/Week selection */}
-  <div className="day-week-selection">
-    <select>
-      <option value="day">Day</option>
-      <option value="week">Week</option>
-    </select>
-  </div>
-
-
-  {/* Week Preview Dropdown */}
-  <div className="week-preview">
-    <select>
-      <option value="preview1">Week 1</option>
-      <option value="preview2">Week 2</option>
-      <option value="preview3">Week 3</option>
-      {/* Add more week previews as needed */}
-    </select>
-  </div>
-</div>
-
+      <div className="search-box">
+        <input type="text" placeholder="Search..." />
+      </div>
+      <span>{moment(toolbar.date).format("D MMMM YYYY")}</span>
+      <div className="day-week-selection">
+        <select>
+          <option value="day">Day</option>
+          <option value="week">Week</option>
+        </select>
+      </div>
+      <div className="week-preview">
+        <select>
+          <option value="preview1">Week 1</option>
+          <option value="preview2">Week 2</option>
+          <option value="preview3">Week 3</option>
+        </select>
+      </div>
+    </div>
   );
 };
 
@@ -70,17 +63,15 @@ const CurrentTimeIndicator = () => {
   const [position, setPosition] = useState(null);
 
   useEffect(() => {
-    const now = new Date();
-    const minutes = now.getHours() * 60 + now.getMinutes();
-    const position = (minutes / (24 * 60)) * 100; // Calculate percentage
-    setPosition(position);
-
-    const interval = setInterval(() => {
+    const updatePosition = () => {
       const now = new Date();
       const minutes = now.getHours() * 60 + now.getMinutes();
       const position = (minutes / (24 * 60)) * 100;
       setPosition(position);
-    }, 60000); // Update every minute
+    };
+
+    updatePosition();
+    const interval = setInterval(updatePosition, 60000); // Update every minute
 
     return () => clearInterval(interval);
   }, []);
@@ -94,46 +85,69 @@ const CurrentTimeIndicator = () => {
 };
 
 const TimeLine = () => {
-  const eventStyleGetter = (event) => {
-    return {
-      style: {
-        backgroundColor: event.color,
-        color: "#fff",
-        borderRadius: "5px",
-        padding: "5px",
-        border: "none",
-        fontSize: "12px",
-        textAlign: "center",
-      },
-    };
+  const [events, setEvents] = useState(initialEvents);
+
+  const onEventDrop = ({ event, start, end }) => {
+    const updatedEvents = events.map((existingEvent) =>
+      existingEvent.id === event.id
+        ? { ...existingEvent, start, end }
+        : existingEvent
+    );
+    setEvents(updatedEvents);
   };
 
+  const onEventResize = ({ event, start, end }) => {
+    const updatedEvents = events.map((existingEvent) =>
+      existingEvent.id === event.id
+        ? { ...existingEvent, start, end }
+        : existingEvent
+    );
+    setEvents(updatedEvents);
+  };
+
+  const eventStyleGetter = (event) => ({
+    style: {
+      backgroundColor: event.color,
+      color: "#fff",
+      borderRadius: "5px",
+      padding: "5px",
+      border: "none",
+      fontSize: "12px",
+      textAlign: "center",
+    },
+  });
+
   return (
-    <div className="calendar-container">
-      <CurrentTimeIndicator />
-      <Calendar
-        localizer={localizer}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        defaultView="week"
-        views={["week"]}
-        step={15}
-        timeslots={4}
-        components={{
-          toolbar: CustomToolbar,
-        }}
-        style={{
-          height: "600px",
-          margin: "20px auto",
-          backgroundColor: "#fff",
-          border: "1px solid #ddd",
-          borderRadius: "10px",
-          padding: "10px",
-        }}
-        eventPropGetter={eventStyleGetter}
-      />
-    </div>
+    <DndProvider backend={HTML5Backend}>
+      <div className="calendar-container">
+        <CurrentTimeIndicator />
+        <DragAndDropCalendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          defaultView="week"
+          views={["week"]}
+          step={15}
+          timeslots={4}
+          components={{
+            toolbar: CustomToolbar,
+          }}
+          style={{
+            height: "600px",
+            margin: "20px auto",
+            backgroundColor: "#fff",
+            border: "1px solid #ddd",
+            borderRadius: "10px",
+            padding: "10px",
+          }}
+          eventPropGetter={eventStyleGetter}
+          onEventDrop={onEventDrop}
+          onEventResize={onEventResize}
+          resizable
+        />
+      </div>
+    </DndProvider>
   );
 };
 
