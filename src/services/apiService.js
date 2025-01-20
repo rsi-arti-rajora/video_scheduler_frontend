@@ -14,6 +14,18 @@ const apiService = {
     }
   },
 
+  fetchScheduledEvents: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/fetch-scheduled-events`);
+
+      return response.data; // Assuming the response contains { data: [...] }
+    } catch (error) {
+      console.error('Error fetching scheduled events:', error);
+      throw error;
+    }
+  },
+
+
   generatePresignedUrl: async (fileName) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/generate-presigned-url`, {
@@ -36,20 +48,33 @@ const apiService = {
     }
   },
 
-  scheduleVideo: async (fileName, startTime) => {
+  scheduleVideo: async (videos) => {
     try {
+      console.log("Sending videos:", videos);  // Log the array of videos to debug
+      
+      // Send the array of videos in the request body
       const response = await axios.post(`${API_BASE_URL}/schedule-video`, {
-        file_name: fileName,
-        start_time: startTime,
+        videos: videos, // Array of video objects
       });
-      return response.data.message;
+      
+      // Assuming the response contains an array of results for each video
+      console.log("Response:", response.data); // Log the entire response from the server
+  
+      // You can return success messages for all videos or handle each individually
+      if (response.data && Array.isArray(response.data)) {
+        // Example of showing success messages for each video
+        response.data.forEach((videoResponse) => {
+          console.log("Video Scheduled:", videoResponse.message || videoResponse.error);
+        });
+      }
+  
+      return response.data; // Optionally return the response from the server
     } catch (error) {
       console.error('Error scheduling video:', error);
       throw error;
     }
   },
-
- // Upload file using the presigned URL
+   // Upload file using the presigned URL
  uploadFile: async (file, onProgress) => {
   try {
     // Step 1: Get the presigned URL
