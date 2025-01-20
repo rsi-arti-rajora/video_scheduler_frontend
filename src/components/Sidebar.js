@@ -4,7 +4,6 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Fab,
   Button,
 } from '@mui/material';
 import { Add, CalendarMonth } from '@mui/icons-material';

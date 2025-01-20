@@ -1,39 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { useDrop } from "react-dnd"; // Added missing import
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-import "./timeline.css"; // Custom styling for exact match
+import "./timeline.css";
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 const localizer = momentLocalizer(moment);
-
-const initialEvents = [
-  {
-    id: 1,
-    title: "Project Demo",
-    start: new Date(2025, 0, 13, 10, 40), // 10:40 AM
-    end: new Date(2025, 0, 13, 11, 0),   // 11:00 AM
-    color: "#3b82f6", // Blue color
-  },
-  {
-    id: 2,
-    title: "Stand-up Meeting",
-    start: new Date(2025, 0, 13, 23, 0), // 11:00 PM
-    end: new Date(2025, 0, 13, 23, 30),  // 11:30 PM
-    color: "#f59e0b", // Orange color
-  },
-  {
-    id: 3,
-    title: "Content Planning",
-    start: new Date(2025, 0, 13, 23, 0), // 11:00 PM
-    end: new Date(2025, 0, 13, 23, 45),  // 11:45 PM
-    color: "#10b981", // Green color
-  },
-];
 
 const CustomToolbar = (toolbar) => {
   return (
@@ -59,33 +34,8 @@ const CustomToolbar = (toolbar) => {
   );
 };
 
-const CurrentTimeIndicator = () => {
-  const [position, setPosition] = useState(null);
-
-  useEffect(() => {
-    const updatePosition = () => {
-      const now = new Date();
-      const minutes = now.getHours() * 60 + now.getMinutes();
-      const position = (minutes / (24 * 60)) * 100;
-      setPosition(position);
-    };
-
-    updatePosition();
-    const interval = setInterval(updatePosition, 60000); // Update every minute
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div
-      className="current-time-indicator"
-      style={{ top: `${position}%` }}
-    ></div>
-  );
-};
-
 const TimeLine = () => {
-  const [events, setEvents] = useState(initialEvents);
+  const [events, setEvents] = useState([]);
 
   const onEventDrop = ({ event, start, end }) => {
     const updatedEvents = events.map((existingEvent) =>
@@ -117,37 +67,76 @@ const TimeLine = () => {
     },
   });
 
-  return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="calendar-container">
-        <CurrentTimeIndicator />
-        <DragAndDropCalendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          defaultView="week"
-          views={["week"]}
-          step={15}
-          timeslots={4}
-          components={{
-            toolbar: CustomToolbar,
-          }}
-          style={{
-            height: "600px",
-            margin: "20px auto",
-            backgroundColor: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: "10px",
-            padding: "10px",
-          }}
-          eventPropGetter={eventStyleGetter}
-          onEventDrop={onEventDrop}
-          onEventResize={onEventResize}
-          resizable
-        />
+  const CalendarWithDrop = ({ children, onDrop }) => {
+    const [, drop] = useDrop({
+      accept: "VIDEO_FILE",
+      drop: (item, monitor) => {
+        console.log(item, "gdgfjdgsj", monitor);
+        const calendarElement = document.querySelector(".calendar-container");
+        const bounds = calendarElement.getBoundingClientRect();
+        const { y } = monitor.getClientOffset();
+
+        const relativeY = y - bounds.top;
+
+        if (relativeY < 0 || relativeY > bounds.height) {
+          console.warn("Dropped outside calendar area");
+          return;
+        }
+
+        const totalMinutes = ((relativeY / bounds.height) * 4 * 60); // Scale it to 4 hours (10 AM to 2 PM)
+        const hours = Math.floor(totalMinutes / 60) + 10; // Offset by 10 AM
+        const minutes = Math.floor(totalMinutes % 60 / 15) * 15; // Round to nearest 15 minutes
+
+        const dropTime = new Date();
+        dropTime.setHours(hours, minutes, 0, 0);
+
+        console.log(dropTime, "dropTime", item);
+
+        // Call onDrop callback with item and the calculated drop time
+        onDrop(item, dropTime);
+      },
+    });
+
+    return (
+      <div ref={drop} className="calendar-container">
+        {children}
       </div>
-    </DndProvider>
+    );
+  };
+
+  const onDrop = (item, dropTime) => {
+    const newEvent = {
+      id: Date.now(),
+      title: item.file_name,
+      start: dropTime,
+      end: new Date(dropTime.getTime() + (item.duration || 15 * 60000)), // Default 15min if no duration
+      color: "#3b82f6",
+    };
+
+    setEvents([...events, newEvent]);
+  };
+
+  return (
+    <CalendarWithDrop onDrop={onDrop}> {/* Passing onDrop here */}
+      <DragAndDropCalendar
+        localizer={localizer}
+        events={events}
+        startAccessor="start"
+        endAccessor="end"
+        defaultView="week"
+        views={["week"]}
+        step={60} // 1-hour interval
+        timeslots={1}
+        min={moment().set({ hour: 10, minute: 0, second: 0 }).toDate()} // Start at 10 AM
+        max={moment().set({ hour: 20, minute: 0, second: 0 }).toDate()} // End at 2 PM
+        components={{
+          toolbar: CustomToolbar,
+        }}
+        eventPropGetter={eventStyleGetter}
+        onEventDrop={onEventDrop}
+        onEventResize={onEventResize}
+      />
+    </CalendarWithDrop>
   );
 };
 

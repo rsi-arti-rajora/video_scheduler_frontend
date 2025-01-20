@@ -1,35 +1,104 @@
 .mini-calendar {
-    font-family: Arial, sans-serif;
-    width: 200px;
-  }
-  
-  .mini-calendar-header {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-  
-  .mini-calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    grid-gap: 5px;
-  }
-  
-  .mini-calendar-day {
-    text-align: center;
-    padding: 10px;
-    cursor: pointer;
-  }
-  
-  .mini-calendar-day.active {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .mini-calendar-day.empty {
-    background-color: #f0f0f0;
-  }
-  
-  .mini-calendar-day:hover {
-    background-color: #e0e0e0;
-  }
-  
+  width: 300px;
+  border: 1px solid #444; /* Subtle border to match dark theme */
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background-color: black; /* Black background */
+  color: white; /* White font color */
+}
+
+.mini-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #222; /* Slightly lighter black for header */
+  border-bottom: 1px solid #444;
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: auto; /* Push the title to the left */
+  color: white; /* White font */
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: white; /* White font */
+}
+
+.nav-button:hover {
+  color: #007bff; /* Highlight color on hover */
+}
+
+.mini-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  background-color: black; /* Black background for grid */
+}
+
+.mini-calendar-day {
+  padding: 10px;
+  border: 1px solid #444; /* Subtle border */
+  cursor: pointer;
+  color: white; /* Default white font color */
+}
+
+.mini-calendar-day.header {
+  font-weight: bold;
+  background-color: #333; /* Dark gray for day headers */
+}
+
+.mini-calendar-day.empty {
+  background-color: transparent;
+  pointer-events: none;
+}
+
+.mini-calendar-day.active {
+  background-color: #007bff; /* Highlight active day */
+  color: white; /* Ensure contrast */
+  border-radius: 50%;
+}
+
+.mini-calendar-day.disabled {
+  color: #666; /* Dimmed font color for disabled dates */
+  pointer-events: none;
+  background-color: #222; /* Slightly lighter black for disabled days */
+}
+
+.mini-calendar-day:hover:not(.disabled) {
+  background-color: #444; /* Hover effect for active days */
+  color: white;
+}
+.mini-calendar-day {
+  padding: 10px;
+  border: 1px solid #444;
+  cursor: pointer;
+  color: white;
+  outline: none; /* Prevent focus outline */
+}
+
+.mini-calendar-day:hover:not(.disabled) {
+  background-color: #444; /* Highlight on hover */
+}
+
+.mini-calendar-day:focus {
+  outline: none; /* Prevent any focus behavior */
+}
+
+.mini-calendar-day.disabled {
+  color: #666;
+  pointer-events: none;
+  background-color: #222;
+}
