@@ -1,37 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { useDrop } from "react-dnd";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-import "./timeline.css"; // Custom styling for exact match
+import "./timeline.css";
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 const localizer = momentLocalizer(moment);
 
+// Get current date for initial events
+const today = new Date();
 const initialEvents = [
   {
     id: 1,
     title: "Project Demo",
-    start: new Date(2025, 0, 13, 10, 40), // 10:40 AM
-    end: new Date(2025, 0, 13, 11, 0),   // 11:00 AM
-    color: "#3b82f6", // Blue color
+    start: new Date(today.setHours(10, 40, 0, 0)),
+    end: new Date(today.setHours(11, 0, 0, 0)),
+    color: "#3b82f6",
   },
   {
     id: 2,
     title: "Stand-up Meeting",
-    start: new Date(2025, 0, 13, 23, 0), // 11:00 PM
-    end: new Date(2025, 0, 13, 23, 30),  // 11:30 PM
-    color: "#f59e0b", // Orange color
+    start: new Date(today.setHours(23, 0, 0, 0)),
+    end: new Date(today.setHours(23, 30, 0, 0)),
+    color: "#f59e0b",
   },
   {
     id: 3,
     title: "Content Planning",
-    start: new Date(2025, 0, 13, 23, 0), // 11:00 PM
-    end: new Date(2025, 0, 13, 23, 45),  // 11:45 PM
-    color: "#10b981", // Green color
+    start: new Date(today.setHours(23, 0, 0, 0)),
+    end: new Date(today.setHours(23, 45, 0, 0)),
+    color: "#10b981",
   },
 ];
 
@@ -71,7 +72,7 @@ const CurrentTimeIndicator = () => {
     };
 
     updatePosition();
-    const interval = setInterval(updatePosition, 60000); // Update every minute
+    const interval = setInterval(updatePosition, 60000);
 
     return () => clearInterval(interval);
   }, []);
@@ -81,6 +82,62 @@ const CurrentTimeIndicator = () => {
       className="current-time-indicator"
       style={{ top: `${position}%` }}
     ></div>
+  );
+};
+
+const CalendarWithDrop = ({ children, onDrop }) => {
+  const [, drop] = useDrop({
+    accept: "VIDEO_FILE",
+    drop: (item, monitor) => {
+      const calendarElement = document.querySelector(".rbc-time-content");
+      if (!calendarElement) return;
+
+      const bounds = calendarElement.getBoundingClientRect();
+      const { y } = monitor.getClientOffset();
+      const scrollTop = calendarElement.scrollTop;
+
+      // Calculate the relative position considering scroll
+      const relativeY = y - bounds.top + scrollTop;
+      
+      // Get the total height of the time slots
+      const totalHeight = calendarElement.scrollHeight;
+      
+      // Calculate the percentage through the day (24 hours)
+      const percentageOfDay = relativeY / totalHeight;
+      
+      // Convert to minutes since midnight
+      const minutesSinceMidnight = percentageOfDay * 24 * 60;
+      
+      // Calculate hours and minutes
+      const hours = Math.floor(minutesSinceMidnight / 60);
+      const minutes = Math.round(minutesSinceMidnight % 60);
+      
+      // Create the drop time using current date
+      const dropTime = new Date();
+      dropTime.setHours(hours, minutes, 0, 0);
+
+      // Debug information
+      console.log("Drop Calculations:", {
+        relativeY,
+        totalHeight,
+        percentageOfDay: percentageOfDay.toFixed(4),
+        minutesSinceMidnight,
+        calculatedTime: `${hours}:${minutes.toString().padStart(2, '0')}`,
+        scrollTop,
+        bounds: {
+          top: bounds.top,
+          height: bounds.height
+        }
+      });
+
+      onDrop(item, dropTime);
+    },
+  });
+
+  return (
+    <div ref={drop} className="calendar-container">
+      {children}
+    </div>
   );
 };
 
@@ -117,37 +174,59 @@ const TimeLine = () => {
     },
   });
 
+  const onDrop = (item, dropTime) => {
+    const durationInMs = item.duration * 1000; // Convert seconds to milliseconds
+    const newEvent = {
+      id: Date.now(),
+      title: item.file_name,
+      start: dropTime,
+      end: new Date(
+        dropTime.getTime() + (durationInMs || 15 * 60000)
+      ), // Default 15min if no duration
+      color: "#3b82f6",
+    };
+    console.log("vikas new event", newEvent);
+    setEvents(prevEvents => [...prevEvents, newEvent]);
+  };
+
+  // Calculate default scroll position to show current time
+  const currentTime = new Date();
+  const defaultScrollTime = new Date(currentTime);
+  defaultScrollTime.setHours(currentTime.getHours() - 1); // 1 hour before current time
+
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="calendar-container">
-        <CurrentTimeIndicator />
-        <DragAndDropCalendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          defaultView="week"
-          views={["week"]}
-          step={15}
-          timeslots={4}
-          components={{
-            toolbar: CustomToolbar,
-          }}
-          style={{
-            height: "600px",
-            margin: "20px auto",
-            backgroundColor: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: "10px",
-            padding: "10px",
-          }}
-          eventPropGetter={eventStyleGetter}
-          onEventDrop={onEventDrop}
-          onEventResize={onEventResize}
-          resizable
-        />
-      </div>
-    </DndProvider>
+    <CalendarWithDrop onDrop={onDrop}>
+      <CurrentTimeIndicator />
+      <DragAndDropCalendar
+        localizer={localizer}
+        events={events}
+        startAccessor="start"
+        endAccessor="end"
+        defaultView="day"
+        views={["day"]}
+        step={15}
+        timeslots={1}
+        defaultDate={new Date()} // Set to current date
+        scrollToTime={defaultScrollTime}
+        min={new Date().setHours(0, 0, 0, 0)} // Start of today
+        max={new Date().setHours(23, 59, 59, 999)} // End of today
+        components={{
+          toolbar: CustomToolbar,
+        }}
+        style={{
+          height: "600px",
+          margin: "20px auto",
+          backgroundColor: "#fff",
+          border: "1px solid #ddd",
+          borderRadius: "10px",
+          padding: "10px",
+        }}
+        eventPropGetter={eventStyleGetter}
+        onEventDrop={onEventDrop}
+        onEventResize={onEventResize}
+        resizable
+      />
+    </CalendarWithDrop>
   );
 };
 
