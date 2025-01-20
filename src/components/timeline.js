@@ -63,16 +63,43 @@ const TimeLine = () => {
 
     fetchEvents(); // Call the fetchEvents function when the component mounts
   }, []);
+  
   // Handling drop event
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: 'video',
     drop: (item, monitor) => {
-      console.log('Dropped:', item);
-      setSelectedVideo(item);
-      setDuration(item.duration);
-      setPopupStartTime(new Date());
-      setShowPopup(true);
-      setSaveVisible(true);
+      const calendarElement = document.querySelector(".rbc-time-content");
+      if (!calendarElement) return;
+
+      const bounds = calendarElement.getBoundingClientRect();
+      const { y } = monitor.getClientOffset();
+      const scrollTop = calendarElement.scrollTop;
+
+      // Calculate the relative position considering scroll
+      const relativeY = y - bounds.top + scrollTop;
+      
+      // Get the total height of the time slots
+      const totalHeight = calendarElement.scrollHeight;
+      
+      // Calculate the percentage through the day (24 hours)
+      const percentageOfDay = relativeY / totalHeight;
+      
+      // Convert to minutes since midnight
+      const minutesSinceMidnight = percentageOfDay * 24 * 60;
+      
+      // Calculate hours and minutes
+      const hours = Math.floor(minutesSinceMidnight / 60);
+      const minutes = Math.round(minutesSinceMidnight % 60);
+      
+      // Create the drop time using current date
+      const dropTime = new Date();
+      dropTime.setHours(hours, minutes, 0, 0);
+ 
+      // Set the time and show popup
+      setPopupStartTime(dropTime);
+      setSelectedVideo(item); // Store the video item
+      setShowPopup(true); // Show the popup
+      setSaveVisible(true); // Show save button
     },
     collect: (monitor) => ({
       isOver: monitor.isOver(),
