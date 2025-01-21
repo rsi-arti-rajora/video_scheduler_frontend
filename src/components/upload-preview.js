@@ -1,13 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Grid,
   Paper,
   Typography,
-  styled
+  styled,
+  Button
 } from '@mui/material';
 import { PlayCircle } from '@mui/icons-material';
 import Hls from 'hls.js';
+import apiService from '../services/apiService';
+import { toast } from 'react-toastify';
 
 // Styled components
 const PreviewCard = styled(Paper)(({ theme }) => ({
@@ -38,8 +41,20 @@ const VideoPlayer = styled('video')({
 });
 
 const PreviewUI = () => {
+  const [hlsUrl, setHlsUrl] = useState(`https://tvunativeoverlay.s3.ap-south-1.amazonaws.com/hls/master.m3u8?timestamp=${new Date().getTime()}`);
   const videoRef = useRef(null);
-  const hlsUrl = `https://tvunativeoverlay.s3.ap-south-1.amazonaws.com/hls/master.m3u8?timestamp=${new Date().getTime()}`; // Replace with your HLS URL
+
+  // Function to restart the stream by fetching a new URL or resetting the current one
+  const restartStream = async () => {
+    try {
+      /// start-ffmpeg-stream
+      await apiService.restartStream();
+      toast.success('Stream restarted successfully!');
+      
+    } catch (error) {
+      console.error('Error restarting the stream:', error);
+    }
+  };
 
   useEffect(() => {
     if (videoRef.current && Hls.isSupported()) {
@@ -74,7 +89,7 @@ const PreviewUI = () => {
         <Grid item xs={12} md={5}>
           <PreviewCard>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 500 }}>
-             Scheduled Output Preview
+              Scheduled Output Preview
             </Typography>
             <PreviewContent>
               <VideoPlayer
@@ -95,6 +110,11 @@ const PreviewUI = () => {
                 }}
               />
             </PreviewContent>
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Button variant="contained" color="primary" onClick={restartStream}>
+                Restart Stream
+              </Button>
+            </Box>
           </PreviewCard>
         </Grid>
       </Grid>
