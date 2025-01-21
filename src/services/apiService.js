@@ -103,6 +103,17 @@ const apiService = {
     throw error;
   }
 },
+ 
+restartStream: async () => {
+    try {
+      await axios.get(`${API_BASE_URL}/start-ffmpeg-stream`);
+      return 'Stream restarted successfully!';
+    } catch (error) {
+      console.error('Error restarting stream:', error);
+      throw error;
+    }
+  },
+
 };
 
 export default apiService;

@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDrop } from 'react-dnd';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
@@ -7,13 +7,11 @@ import './timeline.css';
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import apiService from '../services/apiService';
-import { toast,ToastContainer } from 'react-toastify'; // Import toast
+import { toast, ToastContainer } from 'react-toastify'; // Import toast
 import 'react-toastify/dist/ReactToastify.css'; // Import CSS for toast
-
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
-
 
 const TimeLine = () => {
   const [events, setEvents] = useState([]);
@@ -22,84 +20,51 @@ const TimeLine = () => {
   const [duration, setDuration] = useState(null);
   const [popupStartTime, setPopupStartTime] = useState(new Date());
   const [recurrence, setRecurrence] = useState('never');
-  const [occurrences, setOccurrences] = useState(1); // User-entered occurrences
+  const [occurrences, setOccurrences] = useState(1);
   const [editingEvent, setEditingEvent] = useState(null);
   const [isSaveVisible, setSaveVisible] = useState(false);
+  const [repeatAfterEnd, setRepeatAfterEnd] = useState(false); // New state for repeat after end
 
-
-   // Fetch events from backend
-   useEffect(() => {
+  // Fetch events from backend
+  useEffect(() => {
     const fetchEvents = async () => {
       try {
-        // Fetch the events from the backend
         const fetchedEvents = await apiService.fetchScheduledEvents();
-
-        // Flatten the events from each date and map them to the required format
         const transformedEvents = fetchedEvents.flatMap((day) =>
           day.events.map((event) => {
-            // Convert start_time and end_time from strings to Date objects
-            const startTime = new Date(event.start_time); 
+            const startTime = new Date(event.start_time);
             const endTime = new Date(event.end_time);
-            const fileName =  event.file_name.split('/').pop();// Remove file extension from file name
-
+            const fileName = event.file_name.split('/').pop();
             return {
-              id: event.file_name, // Use file_name as event ID
-              title: fileName, // You can use file_name as the title as well
+              id: event.file_name,
+              title: fileName,
               start: startTime,
               end: endTime,
-              duration: (endTime - startTime) / 1000 / 60, // Calculate duration in minutes
-              key: event.file_name, // Assuming the key is the file name, adjust if needed
-              color: '#10b981', // Example color, can be adjusted
+              duration: (endTime - startTime) / 1000 / 60,
+              key: event.file_name,
+              color: '#10b981',
             };
           })
         );
-        console.log("transformedEvents",transformedEvents);
-        setEvents(transformedEvents); // Set the transformed events in the state
+        setEvents(transformedEvents);
       } catch (error) {
         console.error('Error fetching events:', error);
         toast.error('Failed to fetch events');
       }
     };
 
-    fetchEvents(); // Call the fetchEvents function when the component mounts
+    fetchEvents();
   }, []);
-  
+
   // Handling drop event
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: 'video',
     drop: (item, monitor) => {
-      const calendarElement = document.querySelector(".rbc-time-content");
-      if (!calendarElement) return;
-
-      const bounds = calendarElement.getBoundingClientRect();
-      const { y } = monitor.getClientOffset();
-      const scrollTop = calendarElement.scrollTop;
-
-      // Calculate the relative position considering scroll
-      const relativeY = y - bounds.top + scrollTop;
-      
-      // Get the total height of the time slots
-      const totalHeight = calendarElement.scrollHeight;
-      
-      // Calculate the percentage through the day (24 hours)
-      const percentageOfDay = relativeY / totalHeight;
-      
-      // Convert to minutes since midnight
-      const minutesSinceMidnight = percentageOfDay * 24 * 60;
-      
-      // Calculate hours and minutes
-      const hours = Math.floor(minutesSinceMidnight / 60);
-      const minutes = Math.round(minutesSinceMidnight % 60);
-      
-      // Create the drop time using current date
-      const dropTime = new Date();
-      dropTime.setHours(hours, minutes, 0, 0);
- 
-      // Set the time and show popup
-      setPopupStartTime(dropTime);
-      setSelectedVideo(item); // Store the video item
-      setShowPopup(true); // Show the popup
-      setSaveVisible(true); // Show save button
+      setSelectedVideo(item);
+      setDuration(item.duration);
+      setPopupStartTime(new Date());
+      setShowPopup(true);
+      setSaveVisible(true);
     },
     collect: (monitor) => ({
       isOver: monitor.isOver(),
@@ -108,13 +73,11 @@ const TimeLine = () => {
   });
 
   const handlePopupSubmit = () => {
-    const { id, title, duration,key } = selectedVideo;
+    const { id, title, duration, key } = selectedVideo;
     const startTime = popupStartTime;
     const durationInMs = duration * 60 * 1000;
 
     let newEvents = [];
-
-    // Create events based on recurrence pattern and occurrences entered by user
     for (let i = 0; i < occurrences; i++) {
       let currentStartTime = new Date(startTime.getTime() + i * getRecurrenceInterval());
       let currentEndTime = new Date(currentStartTime.getTime() + durationInMs);
@@ -136,6 +99,8 @@ const TimeLine = () => {
 
   const getRecurrenceInterval = () => {
     switch (recurrence) {
+      case 'minutely':
+        return 60 * 1000;
       case 'hourly':
         return 60 * 60 * 1000;
       case 'daily':
@@ -145,7 +110,7 @@ const TimeLine = () => {
       case 'monthly':
         return 30 * 24 * 60 * 60 * 1000;
       case 'never':
-        return 0; // No recurrence
+        return 0;
       default:
         return 24 * 60 * 60 * 1000;
     }
@@ -173,7 +138,7 @@ const TimeLine = () => {
   const handleRecurrenceChange = (e) => {
     setRecurrence(e.target.value);
     if (e.target.value === 'never') {
-      setOccurrences(1); // Automatically set occurrences to 1 for 'never'
+      setOccurrences(1);
     }
   };
 
@@ -190,49 +155,59 @@ const TimeLine = () => {
   const handleEventClick = (event) => {
     setEditingEvent(event);
     setPopupStartTime(event.start);
-    setRecurrence('never'); // Default recurrence, can be set based on event data
+    setRecurrence('never');
     setShowPopup(true);
   };
 
   const handleSaveEvent = async () => {
-    // Prepare event data, assuming events is an array
     const eventData = events.map(event => ({
-      file_name: event.key, // Assuming event title is the file name
-      start_time: moment(event.start).format('YYYY-MM-DDTHH:mm:ss.SSS'), // Convert to ISO format string
-      duration: event.duration, // Assuming each event has a duration property
+      file_name: event.key,
+      start_time: moment(event.start).format('YYYY-MM-DDTHH:mm:ss.SSS'),
+      duration: event.duration,
     }));
-  
-    console.log('Events to be scheduled:', eventData);
-  
+
     try {
-      // Send the eventData to the backend via the scheduleVideo function
       const response = await apiService.scheduleVideo(eventData);
-      toast.success('Events saved successfully!'); // Show success toast message
+      toast.success('Events saved successfully!');
+      setSaveVisible(false);
     } catch (error) {
-      console.error('Error scheduling video:', error);
-      toast.error('Failed to save events. Please try again.'); // Show error toast message
+      toast.error('Failed to save events. Please try again.');
     }
   };
-  
 
+  const handleDeleteEvent = (eventId) => {
+    setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
+    setSaveVisible(true);
+  };
 
+  const handleRepeatAfterEndChange = () => {
+    setRepeatAfterEnd(!repeatAfterEnd);
+  };
 
   const handleEditEventSubmit = () => {
     const updatedEvents = events.map((event) =>
       event.id === editingEvent.id
-        ? { ...event, start: popupStartTime,recurrence: recurrence, occurrences: occurrences }
+        ? { ...event, start: popupStartTime, recurrence, occurrences }
         : event
     );
     setEvents(updatedEvents);
     setShowPopup(false);
     setEditingEvent(null);
-    setSaveVisible(true);
   };
+
+  const handleRestartStream = () => { 
+    // Call the API to restart the stream
+    apiService.restartStream()
+      .then(() => {
+        toast.success('Stream restarted successfully');
+      })
+      .catch(() => {
+        toast.error('Failed to restart stream');
+      });
+  }
 
   return (
     <div className="calendar-container" ref={drop}>
-     
-      {/* Popup for adding/editing events */}
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup-content">
@@ -251,6 +226,7 @@ const TimeLine = () => {
             <div>
               <label>Recurrence:</label>
               <select value={recurrence} onChange={handleRecurrenceChange}>
+                <option value="minutely">Minutely</option>
                 <option value="hourly">Hourly</option>
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
@@ -270,9 +246,20 @@ const TimeLine = () => {
                 />
               </div>
             )}
+            <div>
+              <label>Repeat After End:</label>
+              <input
+                type="checkbox"
+                checked={repeatAfterEnd}
+                onChange={handleRepeatAfterEndChange}
+              />
+            </div>
             <div className="popup-buttons">
               {editingEvent ? (
-                <button onClick={handleEditEventSubmit}>Update Event</button>
+                <>
+                  <button onClick={handleEditEventSubmit}>Update Event</button>
+                  <button onClick={() => handleDeleteEvent(editingEvent.id)}>Delete Event</button>
+                </>
               ) : (
                 <button onClick={handlePopupSubmit}>Submit</button>
               )}
@@ -280,48 +267,52 @@ const TimeLine = () => {
           </div>
         </div>
       )}
-<div className="calendar-wrapper">
-  {/* Save Event Button (only when events are created) */}
-  {isSaveVisible && (
-    <button className="save-event-btn" onClick={handleSaveEvent}>
-      Save Events
-    </button>
-  )}
 
-  {/* Calendar component */}
-  <DnDCalendar
-    localizer={localizer}
-    events={events}
-    defaultView="week"
-    style={{
-      height: '600px',
-      margin: '20px auto',
-      backgroundColor: '#fff',
-      border: '1px solid #ddd',
-      borderRadius: '10px',
-      padding: '10px',
-    }}
-    eventPropGetter={eventStyleGetter}
-    onSelectSlot={handleSlotSelect}
-    onDoubleClickEvent={handleEventClick} 
-    draggable
-    onEventDrop={({ event, start, end }) => {
-      setSaveVisible(true);
-      const updatedEvents = events.map((e) =>
-        e.id === event.id ? { ...e, start, end } : e
-      );
-      setEvents(updatedEvents);
-    }}
-    onEventResize={({ event, start, end }) => {
-      setSaveVisible(true);
-      const updatedEvents = events.map((e) =>
-        e.id === event.id ? { ...e, start, end } : e
-      );
-      setEvents(updatedEvents);
-    }}
-  />
-</div>
-<ToastContainer />
+      <div className="calendar-wrapper">
+        
+        
+        <button className="save-event-btn" onClick={handleRestartStream}>Restart Stream</button>
+        
+        {isSaveVisible && (
+          <button className="save-event-btn" onClick={handleSaveEvent}>
+            Save Events
+          </button>
+        )}
+
+        <DnDCalendar
+          localizer={localizer}
+          events={events}
+          defaultView="week"
+          style={{
+            height: '600px',
+            margin: '20px auto',
+            backgroundColor: '#fff',
+            border: '1px solid #ddd',
+            borderRadius: '10px',
+            padding: '10px',
+          }}
+          eventPropGetter={eventStyleGetter}
+          onSelectSlot={handleSlotSelect}
+          onDoubleClickEvent={handleEventClick}
+          draggable
+          onEventDrop={({ event, start, end }) => {
+            setSaveVisible(true);
+            const updatedEvents = events.map((e) =>
+              e.id === event.id ? { ...e, start, end } : e
+            );
+            setEvents(updatedEvents);
+          }}
+          onEventResize={({ event, start, end }) => {
+            setSaveVisible(true);
+            const updatedEvents = events.map((e) =>
+              e.id === event.id ? { ...e, start, end } : e
+            );
+            setEvents(updatedEvents);
+          }}
+        />
+      </div>
+
+      <ToastContainer />
     </div>
   );
 };
