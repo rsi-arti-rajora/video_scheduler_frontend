@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDrop } from 'react-dnd';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
@@ -7,8 +7,8 @@ import './timeline.css';
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import apiService from '../services/apiService';
-import { toast, ToastContainer } from 'react-toastify'; // Import toast
-import 'react-toastify/dist/ReactToastify.css'; // Import CSS for toast
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -23,7 +23,58 @@ const TimeLine = () => {
   const [occurrences, setOccurrences] = useState(1);
   const [editingEvent, setEditingEvent] = useState(null);
   const [isSaveVisible, setSaveVisible] = useState(false);
-  const [repeatAfterEnd, setRepeatAfterEnd] = useState(false); // New state for repeat after end
+  const [repeatAfterEnd, setRepeatAfterEnd] = useState(false);
+
+  // Calculate time ranges for display and scrolling
+  const timeRange = useMemo(() => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    // Full day range (00:00:00 to 23:59:59)
+    const startTime = new Date(now);
+    startTime.setHours(0, 0, 0, 0);
+    
+    const endTime = new Date(now);
+    endTime.setHours(23, 59, 59, 999);
+    
+    // Visible range for scrolling (current ±1/3 hours)
+    const visibleRangeStart = new Date(now);
+    visibleRangeStart.setHours(currentHour - 1, 0, 0, 0);
+    
+    const visibleRangeEnd = new Date(now);
+    visibleRangeEnd.setHours(currentHour + 3, 0, 0, 0);
+    
+    return {
+      startTime,
+      endTime,
+      visibleRangeStart,
+      visibleRangeEnd
+    };
+  }, []);
+
+  // Scroll to current time and keep it in view
+  useEffect(() => {
+    const scrollToCurrentTime = () => {
+      const timeIndicator = document.querySelector('.rbc-current-time-indicator');
+      const timeContent = document.querySelector('.rbc-time-content');
+      
+      if (timeContent && timeIndicator) {
+        const scrollPosition = timeIndicator.offsetTop - (timeContent.clientHeight / 2);
+        timeContent.scrollTo({
+          top: scrollPosition,
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    // Initial scroll
+    setTimeout(scrollToCurrentTime, 100);
+
+    // Keep current time in view
+    const scrollInterval = setInterval(scrollToCurrentTime, 60000);
+    
+    return () => clearInterval(scrollInterval);
+  }, []);
 
   // Fetch events from backend
   useEffect(() => {
@@ -34,11 +85,11 @@ const TimeLine = () => {
           day.events.map((event) => {
             const startTime = new Date(event.start_time);
             const endTime = new Date(event.end_time);
-            const fileName =  event?.file_name?.split('/').pop();// Remove file extension from file name
+            const fileName = event?.file_name?.split('/').pop();
 
             return {
-              id: event.id, // Use file_name as event ID
-              title: fileName, // You can use file_name as the title as well
+              id: event.id,
+              title: fileName,
               start: startTime,
               end: endTime,
               duration: (endTime - startTime) / 1000 / 60,
@@ -57,7 +108,7 @@ const TimeLine = () => {
     fetchEvents();
   }, []);
 
-  // Handling drop event
+  // Handle drag and drop
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: 'video',
     drop: (item, monitor) => {
@@ -69,21 +120,13 @@ const TimeLine = () => {
       const { x, y } = monitor.getClientOffset();
       const scrollTop = calendarElement.scrollTop;      
 
-      //For Timing
-      // Calculate the relative position considering scroll
       const relativeY = y - bounds.top + scrollTop;      
-      // Get the total height of the time slots
       const totalHeight = calendarElement.scrollHeight;    
-      // Calculate the percentage through the day (24 hours)
       const percentageOfDay = relativeY / totalHeight;     
-      // Convert to minutes since midnight
       const minutesSinceMidnight = percentageOfDay * 24 * 60;      
-      // Calculate hours and minutes
       const hours = Math.floor(minutesSinceMidnight / 60);
       const minutes = Math.round(minutesSinceMidnight % 60);
 
-      //For Date
-      // Get the date from the calendar cell where the item was dropped
       const dayHeaders = document?.querySelectorAll(".rbc-header");
       const dayWidth = calendarHeaderElement.offsetWidth;
       const startX = dayHeaders[0].getBoundingClientRect().left;
@@ -91,27 +134,16 @@ const TimeLine = () => {
       const dayIndex = Math.floor(relativeX / dayWidth);
       const spanValue = dayHeaders[dayIndex]?.querySelector('span')?.textContent.trim();
 
-      // Extract the day (number) from the spanValue
-      //const day = parseInt(spanValue?.split(" ")[0], 10);
       const day = parseInt(spanValue?.split(" ")[0]||new Date().getDate(), 10);
       const currentDate = new Date();
-
-      // Create a new date with the extracted day
       const weekStartDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-      // Calculate the dropped date by adding days to the week's start
       const dropDate = new Date(weekStartDate);
-
-      // Set the correct day
       dropDate.setDate(weekStartDate.getDate());
-      
-      // Set the correct hours and minutes
       dropDate.setHours(hours, minutes, 0, 0);
  
-      // Set the time and show popup
       setPopupStartTime(dropDate);
-      setSelectedVideo(item); // Store the video item
-      //setShowPopup(true); // Show the popup
-      setSaveVisible(true); // Show save button
+      setSelectedVideo(item);
+      setSaveVisible(true);
       handlePopupSubmit();
     },
     collect: (monitor) => ({
@@ -180,7 +212,6 @@ const TimeLine = () => {
 
   const handleSlotSelect = (slotInfo) => {
     setPopupStartTime(slotInfo.start);
-    //setShowPopup(true);
   };
 
   const handleRecurrenceChange = (e) => {
@@ -228,10 +259,6 @@ const TimeLine = () => {
     setSaveVisible(true);
   };
 
-  const handleRepeatAfterEndChange = () => {
-    setRepeatAfterEnd(!repeatAfterEnd);
-  };
-
   const handleEditEventSubmit = () => {
     const updatedEvents = events.map((event) =>
       event.id === editingEvent.id
@@ -243,8 +270,7 @@ const TimeLine = () => {
     setEditingEvent(null);
   };
 
-  const handleRestartStream = () => { 
-    // Call the API to restart the stream
+  const handleRestartStream = () => {
     apiService.restartStream()
       .then(() => {
         toast.success('Stream restarted successfully');
@@ -252,7 +278,7 @@ const TimeLine = () => {
       .catch(() => {
         toast.error('Failed to restart stream');
       });
-  }
+  };
 
   return (
     <div className="calendar-container" ref={drop}>
@@ -299,7 +325,7 @@ const TimeLine = () => {
               <input
                 type="checkbox"
                 checked={repeatAfterEnd}
-                onChange={handleRepeatAfterEndChange}
+                onChange={() => setRepeatAfterEnd(!repeatAfterEnd)}
               />
             </div>
             <div className="popup-buttons">
@@ -317,10 +343,12 @@ const TimeLine = () => {
       )}
 
       <div className="calendar-wrapper">
-        
-        
-        <button className="save-event-btn" onClick={handleRestartStream}>Restart Stream</button>
-        
+        <div className="restart-stream-btn-container">
+          <button className="restart-stream-btn" onClick={handleRestartStream}>
+            Restart Stream
+          </button>
+        </div>
+
         {isSaveVisible && (
           <button className="save-event-btn" onClick={handleSaveEvent}>
             Save Events
@@ -334,6 +362,9 @@ const TimeLine = () => {
           views={['day', 'agenda']}
           step={15}
           timeslots={1}
+          min={timeRange.startTime}
+          max={timeRange.endTime}
+          scrollToTime={timeRange.visibleRangeStart}
           style={{
             height: '600px',
             margin: '20px auto',

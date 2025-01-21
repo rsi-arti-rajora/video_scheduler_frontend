@@ -82,6 +82,24 @@
     position: relative;
     margin: 20px;
   }
+
+  .restart-stream-btn {
+    position: absolute;
+    top: -300px; /* Adjust the top value to place it just above the calendar */
+    right: 10px;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .restart-stream-btn:hover {
+    background-color: #0d9f68;
+  }
   
   .save-event-btn {
     position: absolute;
