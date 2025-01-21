@@ -63,40 +63,60 @@ const TimeLine = () => {
 
     fetchEvents(); // Call the fetchEvents function when the component mounts
   }, []);
-  
+
   // Handling drop event
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: 'video',
     drop: (item, monitor) => {
       const calendarElement = document.querySelector(".rbc-time-content");
-      if (!calendarElement) return;
+      const calendarHeaderElement = document.querySelector(".rbc-day-bg");
+      if (!calendarElement || !calendarHeaderElement) return;
 
       const bounds = calendarElement.getBoundingClientRect();
-      const { y } = monitor.getClientOffset();
+      const { x, y } = monitor.getClientOffset();
       const scrollTop = calendarElement.scrollTop;
 
+      //For Timing
       // Calculate the relative position considering scroll
-      const relativeY = y - bounds.top + scrollTop;
-      
+      const relativeY = y - bounds.top + scrollTop;      
       // Get the total height of the time slots
-      const totalHeight = calendarElement.scrollHeight;
-      
+      const totalHeight = calendarElement.scrollHeight;    
       // Calculate the percentage through the day (24 hours)
-      const percentageOfDay = relativeY / totalHeight;
-      
+      const percentageOfDay = relativeY / totalHeight;     
       // Convert to minutes since midnight
-      const minutesSinceMidnight = percentageOfDay * 24 * 60;
-      
+      const minutesSinceMidnight = percentageOfDay * 24 * 60;      
       // Calculate hours and minutes
       const hours = Math.floor(minutesSinceMidnight / 60);
       const minutes = Math.round(minutesSinceMidnight % 60);
+
+
+      //For Date
+      // Get the date from the calendar cell where the item was dropped
+      const dayHeaders = document.querySelectorAll(".rbc-header");
+      const dayWidth = calendarHeaderElement.offsetWidth;
+      const startX = dayHeaders[0].getBoundingClientRect().left;
+      const relativeX = x - startX;
+      const dayIndex = Math.floor(relativeX / dayWidth);
+      const spanValue = dayHeaders[dayIndex].querySelector('span')?.textContent.trim();
+
+      // Extract the day (number) from the spanValue
+      const day = parseInt(spanValue.split(" ")[0], 10);
       
-      // Create the drop time using current date
-      const dropTime = new Date();
-      dropTime.setHours(hours, minutes, 0, 0);
+      const currentDate = new Date();
+
+      // Create a new date with the extracted day
+      const weekStartDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      // Calculate the dropped date by adding days to the week's start
+      const dropDate = new Date(weekStartDate);
+
+      // Set the correct day
+      dropDate.setDate(weekStartDate.getDate());
+      
+      // Set the correct hours and minutes
+      dropDate.setHours(hours, minutes, 0, 0);
  
       // Set the time and show popup
-      setPopupStartTime(dropTime);
+      setPopupStartTime(dropDate);
       setSelectedVideo(item); // Store the video item
       setShowPopup(true); // Show the popup
       setSaveVisible(true); // Show save button
