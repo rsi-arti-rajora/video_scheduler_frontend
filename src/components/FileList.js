@@ -13,9 +13,9 @@ const FileList = ({ videos, onSelect }) => {
         Video Files
       </Typography>
       <List>
-        {videos.map((video) => (
+        {videos.map((video,index) => (
           <DraggableVideoItem
-            key={video.id}
+            key={index}
             video={video}
             onSelect={onSelect}
           />

@@ -40,10 +40,10 @@ const TimeLine = () => {
             // Convert start_time and end_time from strings to Date objects
             const startTime = new Date(event.start_time); 
             const endTime = new Date(event.end_time);
-            const fileName =  event.file_name.split('/').pop();// Remove file extension from file name
+            const fileName =  event?.file_name?.split('/').pop();// Remove file extension from file name
 
             return {
-              id: event.file_name, // Use file_name as event ID
+              id: event.id, // Use file_name as event ID
               title: fileName, // You can use file_name as the title as well
               start: startTime,
               end: endTime,
@@ -68,13 +68,13 @@ const TimeLine = () => {
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: 'video',
     drop: (item, monitor) => {
-      const calendarElement = document.querySelector(".rbc-time-content");
-      const calendarHeaderElement = document.querySelector(".rbc-day-bg");
+      const calendarElement = document?.querySelector(".rbc-time-content");
+      const calendarHeaderElement = document?.querySelector(".rbc-day-bg");
       if (!calendarElement || !calendarHeaderElement) return;
 
       const bounds = calendarElement.getBoundingClientRect();
       const { x, y } = monitor.getClientOffset();
-      const scrollTop = calendarElement.scrollTop;
+      const scrollTop = calendarElement.scrollTop;      
 
       //For Timing
       // Calculate the relative position considering scroll
@@ -89,19 +89,18 @@ const TimeLine = () => {
       const hours = Math.floor(minutesSinceMidnight / 60);
       const minutes = Math.round(minutesSinceMidnight % 60);
 
-
       //For Date
       // Get the date from the calendar cell where the item was dropped
-      const dayHeaders = document.querySelectorAll(".rbc-header");
+      const dayHeaders = document?.querySelectorAll(".rbc-header");
       const dayWidth = calendarHeaderElement.offsetWidth;
       const startX = dayHeaders[0].getBoundingClientRect().left;
       const relativeX = x - startX;
       const dayIndex = Math.floor(relativeX / dayWidth);
-      const spanValue = dayHeaders[dayIndex].querySelector('span')?.textContent.trim();
+      const spanValue = dayHeaders[dayIndex]?.querySelector('span')?.textContent.trim();
 
       // Extract the day (number) from the spanValue
-      const day = parseInt(spanValue.split(" ")[0], 10);
-      
+      //const day = parseInt(spanValue?.split(" ")[0], 10);
+      const day = parseInt(spanValue?.split(" ")[0]||new Date().getDate(), 10);
       const currentDate = new Date();
 
       // Create a new date with the extracted day
