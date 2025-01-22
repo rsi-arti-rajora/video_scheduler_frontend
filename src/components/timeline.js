@@ -17,6 +17,9 @@ const TimeLine = () => {
   const [events, setEvents] = useState([]);
   const [isSaveVisible, setSaveVisible] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date()); // Track the current time for the current time line
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newEventTime, setNewEventTime] = useState('');
   
   // Fetch events from backend
   useEffect(() => {
@@ -59,15 +62,6 @@ const TimeLine = () => {
     return () => clearInterval(interval); // Clear interval on cleanup
   }, []);
 
-  // Update the current time every minute
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date()); // Update current time every minute
-    }, 1000); // 60000 ms = 1 minute
-
-    return () => clearInterval(interval); // Clear interval on cleanup
-  }, []);
-
   // Handle drag and drop
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: 'video',
@@ -95,9 +89,26 @@ const TimeLine = () => {
 
       const day = parseInt(spanValue?.split(" ")[0] || new Date().getDate(), 10);
       const currentDate = new Date();
-      const dropDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day, hours, minutes, seconds);
-
+      let dropDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day, hours, minutes, seconds);
+																													  
       const durationInMs = Math.round(item.duration) * 1000;
+
+      // Constants for time calculations
+      const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
+      const ONE_SECOND = 1 * 1000; // 1 second in milliseconds
+
+      // Check for nearby scheduled events (within 30 minutes)
+      const nearbyEvent = events
+        .sort((a, b) => a.end - b.end)
+        .find(event => {
+          const timeDifference = Math.abs(event.end.getTime() - dropDate.getTime());
+          return timeDifference <= FIVE_MINUTES;
+        });
+
+      // If there's a nearby event, adjust the drop time
+      if (nearbyEvent) {
+        dropDate = new Date(nearbyEvent.end.getTime() + ONE_SECOND);
+      }
       let dropEndTime = new Date(dropDate.getTime() + durationInMs);
 
       // Prevent overlapping events
@@ -172,6 +183,56 @@ const TimeLine = () => {
     },
   });
 
+  const handleEventDoubleClick = (event) => {
+    setSelectedEvent(event);
+    setNewEventTime(moment(event.start).format('YYYY-MM-DDTHH:mm'));
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteEvent = () => {
+    setEvents(events.filter(event => event.id !== selectedEvent.id));
+    setIsModalOpen(false);
+    setSaveVisible(true);
+    toast.success('Event deleted successfully!');
+  };
+
+  const handleRescheduleEvent = () => {
+    const newDateTime = new Date(newEventTime);
+    const durationInMs = selectedEvent.duration * 1000;
+    console.log("vikas in handle reschedule event newDateTime: ",newDateTime);
+    console.log("vikas in handle reschedule event  selectedEvent.duration: ", durationInMs);
+    const newEndTime = new Date(newDateTime.getTime() + durationInMs);
+
+    const hasOverlap = events.some(
+      event =>
+        event.id !== selectedEvent.id &&
+        ((newDateTime >= event.start && newDateTime < event.end) ||
+         (newEndTime > event.start && newEndTime <= event.end))
+    );
+
+    if (hasOverlap) {
+      toast.error('This time slot overlaps with another event');
+      return;
+    }
+
+    const updatedEvents = events.map(event => {
+      if (event.id === selectedEvent.id) {
+        return {
+          ...event,
+          start: newDateTime,
+          end: newEndTime,
+          title: `${event.originalTitle} (${moment(newDateTime).format('HH:mm:ss')} - ${moment(newEndTime).format('HH:mm:ss')})`
+        };
+      }
+      return event;
+    });
+
+    setEvents(updatedEvents);
+    setIsModalOpen(false);
+    setSaveVisible(true);
+    toast.success('Event rescheduled successfully!');
+  };
+
   const handleSaveEvent = async () => {
     const eventData = events.map((event) => ({
       file_name: event.key,
@@ -201,10 +262,10 @@ const TimeLine = () => {
         events={events}
         defaultView="day"
         views={['day']}
-        step={15}
+        step={10}
         timeslots={1}
         scrollToTime={new Date()}
-        resizable={false} // Disable resizing
+        resizable // Disable resizing
         draggableAccessor={() => true} // Enable dragging
         style={{
           height: '600px',
@@ -236,7 +297,43 @@ const TimeLine = () => {
           );
           setEvents(updatedEvents);
         }}
+		    onDoubleClickEvent={handleEventDoubleClick}		
       />
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Event Management</h2>
+						 
+						 
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Event:</label>
+                <div className="event-title">{selectedEvent?.originalTitle}</div>
+              </div>
+              
+              <div className="form-group">
+                <label>Reschedule to:</label>
+                <input
+                  type="datetime-local"
+                  value={newEventTime}
+                  onChange={(e) => setNewEventTime(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="delete-btn" onClick={handleDeleteEvent}>
+                Delete Event
+              </button>
+              <button className="cancel-btn" onClick={() => setIsModalOpen(false)}>
+                Cancel
+              </button>
+              <button className="reschedule-btn" onClick={handleRescheduleEvent}>
+                Reschedule
+              </button>
+            </div>
+          </div>				 
+        </div>
+      )}
       <ToastContainer />
     </div>
   );
