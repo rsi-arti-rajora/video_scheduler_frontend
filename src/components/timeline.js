@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import {React, useState, useEffect, useMemo, useCallback } from 'react';
+
 import { useDrop } from 'react-dnd';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
@@ -13,14 +14,16 @@ import 'react-toastify/dist/ReactToastify.css';
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
-const TimeLine = () => {
+const TimeLine = ({ selectedDay, onDateChange }) => {
   const [events, setEvents] = useState([]);
   const [isSaveVisible, setSaveVisible] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date()); // Track the current time for the current time line
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newEventTime, setNewEventTime] = useState('');
-  
+  // Memoized timeline date to avoid unnecessary re-renders
+  const timelineDate = useMemo(() => (selectedDay instanceof Date ? selectedDay : new Date()), [selectedDay]);
+
   // Fetch events from backend
   useEffect(() => {
     const fetchEvents = async () => {
@@ -62,10 +65,11 @@ const TimeLine = () => {
     return () => clearInterval(interval); // Clear interval on cleanup
   }, []);
 
+  
   // Handle drag and drop
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: 'video',
-    drop: (item, monitor) => {
+    drop: useCallback((item, monitor) => {
       const calendarElement = document?.querySelector(".rbc-time-content");
       if (!calendarElement) return;
 
@@ -163,7 +167,7 @@ const TimeLine = () => {
         },
       ]);
       setSaveVisible(true);
-    },
+    }, [events]),
     collect: (monitor) => ({
       isOver: monitor.isOver(),
       canDrop: monitor.canDrop(),
@@ -264,7 +268,9 @@ const TimeLine = () => {
         views={['day']}
         step={10}
         timeslots={1}
-        scrollToTime={new Date()}
+        scrollToTime={timelineDate}
+        date={timelineDate}
+        onNavigate={onDateChange}
         resizable // Disable resizing
         draggableAccessor={() => true} // Enable dragging
         style={{

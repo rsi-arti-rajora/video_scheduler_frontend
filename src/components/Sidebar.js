@@ -6,11 +6,10 @@ import {
   Alert,
   Button,
 } from '@mui/material';
-import { Add, CalendarMonth } from '@mui/icons-material';
+import { Add } from '@mui/icons-material';
 
 import UploadDialog from './UploadDialog';
 import FileList from './FileList';
-import MiniCalendar from './MiniCalendar';
 import apiService from '../services/apiService';
 import VideoPreview from './VideoPreview';
 
@@ -54,20 +53,9 @@ const Sidebar = () => {
   };
 
   return (
-
       <Box display="flex" minHeight="100vh" bgcolor="gray.100">
         <Box width={300} bgcolor="black" color="white" p={2} position="relative">
-          <Box display="flex" alignItems="center" mb={4}>
-            <CalendarMonth sx={{ fontSize: 20, color: 'white', padding: 1, mr: 1 }} />
-            <Typography variant="h6" sx={{ fontSize: 20 }}>
-              Content Scheduling
-            </Typography>
-          </Box>
-
-          <MiniCalendar />
-
           <VideoPreview selectedVideo={selectedVideo ? selectedVideo.file_url : null} />
-
           <Box>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="subtitle2">Source Input Folders</Typography>
@@ -94,14 +82,12 @@ const Sidebar = () => {
             )}
           </Box>
         </Box>
-
         <UploadDialog
           isOpen={showUploadDialog}
           onClose={() => setShowUploadDialog(false)}
           onUploadSuccess={handleUploadSuccess}
         />
       </Box>
-   
   );
 };
 
