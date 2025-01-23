@@ -28,11 +28,6 @@
   margin-bottom: 2rem;
 }
 
-/* Mini Calendar */
-.mini-calendar {
-  margin-bottom: 2rem;
-}
-
 .mini-calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
