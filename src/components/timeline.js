@@ -14,6 +14,10 @@ import 'react-toastify/dist/ReactToastify.css';
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
+// Constants for time calculations
+const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
+const ONE_SECOND = 1 * 1000; // 1 second in milliseconds
+
 const TimeLine = ({ selectedDay, onDateChange }) => {
   const [events, setEvents] = useState([]);
   const [isSaveVisible, setSaveVisible] = useState(false);
@@ -88,7 +92,6 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
       // Get the current date from the calendar's date header
       const dateHeader = document.querySelector('.rbc-toolbar-label');
       let currentDate = dateHeader ? new Date(dateHeader.textContent) : new Date();
-
       // Ensure the date is valid
       if (isNaN(currentDate.getTime())) {
         console.error('Invalid date in calendar header:', dateHeader.textContent);
@@ -108,14 +111,18 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
         minutes,
         seconds
       );
+
+      // Get the current time
+      const now = new Date();
+
+      // Prevent scheduling before the current time
+      if (dropDate.getTime() <= now.getTime()) {
+        dropDate = new Date(now.getTime() + 1000); // Adjust to 1 second after the current time
+      }
 																													  
       const durationInMs = Math.round(item.duration) * 1000;
 
-      // Constants for time calculations
-      const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
-      const ONE_SECOND = 1 * 1000; // 1 second in milliseconds
-
-      // Check for nearby scheduled events (within 30 minutes)
+      // Check for nearby scheduled events (within 5 minutes)
       const nearbyEvent = events
         .sort((a, b) => a.end - b.end)
         .find(event => {
@@ -129,42 +136,39 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
       }
       let dropEndTime = new Date(dropDate.getTime() + durationInMs);
 
-      // Prevent overlapping events
-      const hasOverlap = events.some(
-        (event) =>
-          (dropDate >= event.start && dropDate < event.end) ||
-          (dropEndTime > event.start && dropEndTime <= event.end)
-      );
+      // Function to check if a given time range is available
+      const isSlotAvailable = (start, end) => {
+        return !events.some(
+          (event) =>
+            (start >= event.start && start < event.end) || // New start time overlaps
+            (end > event.start && end <= event.end) || // New end time overlaps
+            (start <= event.start && end >= event.end) // New event completely overlaps
+        );
+      };
+      // Check if the initial drop time overlaps
+      if (!isSlotAvailable(dropDate, dropEndTime)) {
+        // Find the next available slot
+        let nextAvailableStart = new Date(dropEndTime);
 
-      // If overlap, find the next available time slot
-      if (hasOverlap) {
-        const sortedEvents = [...events].sort((a, b) => a.start - b.start); // Sort by start time
-        let nextAvailableTime = dropDate.getTime();
+        let foundSlot = false;
+        while (!foundSlot) {
+          const potentialEnd = new Date(nextAvailableStart.getTime() + durationInMs);
+          if (isSlotAvailable(nextAvailableStart, potentialEnd)) {
+            dropDate = new Date(nextAvailableStart);
+            dropDate = new Date(dropDate.getTime() + ONE_SECOND);
+            dropEndTime.setTime(potentialEnd.getTime());
+            foundSlot = true;
+          } else {
+            // Move to the next second
+            nextAvailableStart.setSeconds(nextAvailableStart.getSeconds() + 1);
+          }
 
-        // Check if event is near another event (within 1 hour)
-        const hourInMs = 60 * 60 * 1000;
-        const conflictingEvent = sortedEvents.find(event => {
-          return (
-            dropDate.getTime() <= event.end.getTime() + hourInMs &&
-            dropDate.getTime() >= event.end.getTime() - hourInMs
-          );
-        });
-
-        // If conflicting event found, place the event after it
-        if (conflictingEvent) {
-          nextAvailableTime = conflictingEvent.end.getTime();
-          dropDate.setTime(nextAvailableTime);
+          // Prevent infinite loop (just in case)
+          if (nextAvailableStart.getDate() !== currentDate.getDate()) {
+            toast.error('No available time slots for this event on the selected date.');
+            return;
+          }
         }
-
-        // Ensure no overlap by checking the sorted events
-        dropEndTime = new Date(dropDate.getTime() + durationInMs);
-      }
-
-      // If the drop is near the current time, snap to the next available slot
-      const currentTime = new Date();
-      if (dropDate.getTime() < currentTime.getTime()) {
-        dropDate.setTime(currentTime.getTime());
-        dropEndTime = new Date(dropDate.getTime() + durationInMs);
       }
 
       setEvents((prevEvents) => [
@@ -217,8 +221,6 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
   const handleRescheduleEvent = () => {
     const newDateTime = new Date(newEventTime);
     const durationInMs = selectedEvent.duration * 1000;
-    console.log("vikas in handle reschedule event newDateTime: ",newDateTime);
-    console.log("vikas in handle reschedule event  selectedEvent.duration: ", durationInMs);
     const newEndTime = new Date(newDateTime.getTime() + durationInMs);
 
     const hasOverlap = events.some(
@@ -285,7 +287,7 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
         scrollToTime={timelineDate}
         date={timelineDate}
         onNavigate={onDateChange}
-        resizable // Disable resizing
+        resizable={false} // Disable resizing
         draggableAccessor={() => true} // Enable dragging
         style={{
           height: '600px',
@@ -299,7 +301,6 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
         onEventDrop={({ event, start, end }) => {
           const durationInMs = event.duration * 1000;
           const dropEndTime = new Date(start.getTime() + durationInMs);
-
           // Prevent overlapping during drag
           const hasOverlap = events.some(
             (e) =>
