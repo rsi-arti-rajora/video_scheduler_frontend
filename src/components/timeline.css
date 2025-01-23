@@ -307,7 +307,8 @@
 .rbc-day-slot .rbc-events-container {
     margin-right: 0 !important; /* Set margin-right to 0 */
 }
+
 .rbc-current-time-indicator{
     background-color: red !important;
-    height: 5px;
-}
+    height: 2px !important
+  }

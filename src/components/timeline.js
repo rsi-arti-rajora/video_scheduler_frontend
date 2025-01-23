@@ -124,7 +124,7 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
 
       // If overlap, find the next available time slot
       if (hasOverlap) {
-        const sortedEvents = [...events].sort((a, b) => a.start - b.start()); // Sort by start time
+        const sortedEvents = [...events].sort((a, b) => a.start - b.start); // Sort by start time
         let nextAvailableTime = dropDate.getTime();
 
         // Check if event is near another event (within 1 hour)

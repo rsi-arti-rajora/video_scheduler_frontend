@@ -48,7 +48,10 @@ const FileList = ({ videos, onSelect }) => {
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
         Video Files
       </Typography>
-      <List>
+      <List sx={{
+        maxHeight: 400,  // Set max height of the list
+        overflowY: 'auto', // Enable vertical scrolling
+      }}>
         {videos.map((video,index) => (
           <DraggableVideoItem
             key={index}
