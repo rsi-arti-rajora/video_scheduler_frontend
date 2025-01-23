@@ -70,7 +70,6 @@ const FileList = ({ videos, onSelect }) => {
 const DraggableVideoItem = ({ video, onSelect }) => {
   // after .com is the key
   const key = getKeyFromUrl(video.file_url);
-  console.log(video);
   const [, drag] = useDrag({
     type: 'video',
     item: { id: video.id, title: video.file_name, duration: video.duration,key },
@@ -78,6 +77,7 @@ const DraggableVideoItem = ({ video, onSelect }) => {
 
   return (
     <ListItem
+      key={video.id}
       button
       selected={video.selected}
       onClick={() => onSelect(video.id)}

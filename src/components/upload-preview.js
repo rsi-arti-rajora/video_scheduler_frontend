@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Grid, Paper, Typography, styled, Button } from "@mui/material";
+import { Box, Grid, Paper, Typography, styled, Button, TextField } from "@mui/material";
 import { PlayCircle } from "@mui/icons-material";
 import Hls from "hls.js";
 import apiService from "../services/apiService";
@@ -45,22 +45,75 @@ const FallbackImage = styled("img")({
 });
 
 const PreviewUI = () => {
-  const [hlsUrl, setHlsUrl] = useState(
-    `https://tvunativeoverlay.s3.ap-south-1.amazonaws.com/hls/master.m3u8?timestamp=${new Date().getTime()}`
-  );
-  const [isStreamAvailable, setIsStreamAvailable] = useState(true); // Tracks if the stream is available
+  const [hlsUrl, setHlsUrl] = useState(getNewHlsUrl());
+  const [isStreamAvailable, setIsStreamAvailable] = useState(true);
+  const [showHlsUrl, setShowHlsUrl] = useState(false);
   const videoRef = useRef(null);
-  const pollingInterval = useRef(null); // Ref for the polling interval
+  const hlsRef = useRef(null); // Store HLS instance
+  const pollingInterval = useRef(null);
+
+  function getNewHlsUrl() {
+    return `https://tvunativeoverlay.s3.ap-south-1.amazonaws.com/hls/master.m3u8?timestamp=${new Date().getTime()}&random=${Math.random()}`;
+  }
 
   const restartStream = async () => {
     try {
       await apiService.restartStream();
       toast.success("Stream restarted successfully!");
-      setHlsUrl(
-        `https://tvunativeoverlay.s3.ap-south-1.amazonaws.com/hls/master.m3u8?timestamp=${new Date().getTime()}`
-      );
+      const newUrl = getNewHlsUrl();
+      setHlsUrl(newUrl);
+      setShowHlsUrl(true);
+      reloadHlsStream(newUrl); // Reload the HLS stream with the new URL
     } catch (error) {
       console.error("Error restarting the stream:", error);
+      toast.error("Failed to restart the stream.");
+    }
+  };
+
+  const reloadHlsStream = (url) => {
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+  }
+  if (videoRef.current) {
+    videoRef.current.src = "";
+    videoRef.current.load();
+}
+
+  
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(videoRef.current);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setIsStreamAvailable(true);
+        stopPolling();
+      });
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.type === "networkError") {
+          console.error("Stream unavailable. Starting polling...");
+          setIsStreamAvailable(false);
+          startPolling();
+        }
+      });
+
+      hlsRef.current = hls; // Store the new HLS instance
+    } else if (videoRef.current?.canPlayType("application/vnd.apple.mpegurl")) {
+      const videoElement = videoRef.current;
+      videoElement.src = url;
+
+      videoElement.addEventListener("loadedmetadata", () => {
+        setIsStreamAvailable(true);
+        stopPolling();
+      });
+
+      videoElement.addEventListener("error", () => {
+        console.error("Stream error. Starting polling...");
+        setIsStreamAvailable(false);
+        startPolling();
+      });
     }
   };
 
@@ -68,7 +121,6 @@ const PreviewUI = () => {
     if (pollingInterval.current) {
       clearInterval(pollingInterval.current);
       pollingInterval.current = null;
-      console.log("Polling stopped");
     }
   };
 
@@ -76,74 +128,21 @@ const PreviewUI = () => {
     if (!pollingInterval.current) {
       pollingInterval.current = setInterval(() => {
         console.log("Checking stream availability...");
-        checkStreamAvailability();
-      }, 1000); // Check every 15 seconds
-      console.log("Polling started");
-    }
-  };
-
-  const checkStreamAvailability = () => {
-    if (!videoRef.current) {
-      console.warn('Video element is not attached yet. Retrying...');
-      return;
-    }
-
-    if (Hls.isSupported()) {
-      const hls = new Hls();
-      hls.loadSource(hlsUrl);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        setIsStreamAvailable(true);
-        stopPolling(); // Stop polling if the stream is playing
-      });
-
-      hls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.type === "networkError") {
-          console.log("1 Stream stopped. Resuming polling...");
-          setIsStreamAvailable(false);
-          startPolling(); // Start polling again when the stream stops
-        }
-      });
-     
-
-       // Detect stream completion
-      
-      hls.attachMedia(videoRef.current);
-
-      return () => {
-        hls.destroy();
-      };
-    } else if (videoRef.current?.canPlayType("application/vnd.apple.mpegurl")) {
-      const videoElement = videoRef.current;
-      videoElement.src = hlsUrl;
-
-      videoElement.addEventListener("loadedmetadata", () => {
-        setIsStreamAvailable(true);
-        stopPolling(); // Stop polling if the stream is playing
-      });
-
-      videoElement.addEventListener("error", () => {
-        console.log("2 Stream stopped. Resuming polling...");
-        setIsStreamAvailable(false);
-        startPolling(); // Start polling again when the stream stops
-      });
+        reloadHlsStream(hlsUrl); // Reload the stream to check availability
+      }, 5000); // Check every 5 seconds
     }
   };
 
   useEffect(() => {
-    // Ensure the video element is available before checking stream
-    const interval = setInterval(() => {
-      if (videoRef.current) {
-        clearInterval(interval);
-        checkStreamAvailability();
-        startPolling(); // Start polling on mount
-      }
-    }, 1000);
+    // Initial stream setup
+    reloadHlsStream(hlsUrl);
 
-    // Cleanup on component unmount
+    // Cleanup on unmount
     return () => {
       stopPolling();
-      clearInterval(interval);
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+      }
     };
   }, [hlsUrl]);
 
@@ -161,9 +160,9 @@ const PreviewUI = () => {
                 ref={videoRef}
                 controls
                 autoPlay
-                muted // Mute the video to enable autoplay
+                muted
                 style={{
-                  display: isStreamAvailable ? "block" : "none", // Hide the video when the stream is unavailable
+                  display: isStreamAvailable ? "block" : "none",
                 }}
               />
               {!isStreamAvailable && (
@@ -184,13 +183,25 @@ const PreviewUI = () => {
                 }}
               />
             </PreviewContent>
+            {showHlsUrl && (
+              <Box sx={{ mt: 2 }}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  value={hlsUrl}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+              </Box>
+            )}
             <Box sx={{ mt: 2, textAlign: "center" }}>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={restartStream}
               >
-                Restart Stream
+                Publish
               </Button>
             </Box>
           </PreviewCard>
