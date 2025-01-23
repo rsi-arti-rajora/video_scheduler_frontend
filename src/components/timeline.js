@@ -85,15 +85,29 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
       const minutes = Math.round(minutesSinceMidnight % 60);
       const seconds = 0;
 
-      const dayHeaders = document?.querySelectorAll(".rbc-header");
-      const dayWidth = dayHeaders[0].offsetWidth;
-      const startX = dayHeaders[0].getBoundingClientRect().left;
-      const dayIndex = Math.floor((x - startX) / dayWidth);
-      const spanValue = dayHeaders[dayIndex]?.querySelector('span')?.textContent.trim();
+      // Get the current date from the calendar's date header
+      const dateHeader = document.querySelector('.rbc-toolbar-label');
+      let currentDate = dateHeader ? new Date(dateHeader.textContent) : new Date();
 
-      const day = parseInt(spanValue?.split(" ")[0] || new Date().getDate(), 10);
-      const currentDate = new Date();
-      let dropDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day, hours, minutes, seconds);
+      // Ensure the date is valid
+      if (isNaN(currentDate.getTime())) {
+        console.error('Invalid date in calendar header:', dateHeader.textContent);
+        currentDate = new Date();
+      }  else {
+        // Set the year to the current year if the parsed year is not the current year
+        if (currentDate.getFullYear() !== new Date().getFullYear()) {
+          currentDate.setFullYear(new Date().getFullYear());
+        }
+      }
+
+      let dropDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        currentDate.getDate(),
+        hours,
+        minutes,
+        seconds
+      );
 																													  
       const durationInMs = Math.round(item.duration) * 1000;
 
