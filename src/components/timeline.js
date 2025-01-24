@@ -220,6 +220,14 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
 
   const handleRescheduleEvent = () => {
     const newDateTime = new Date(newEventTime);
+    const now = new Date(); // Current time
+
+    // Check if the new time is before or equal to the current time
+    if (newDateTime <= now) {
+      toast.error('Please provide a future time for scheduling');
+      return;
+    }
+
     const durationInMs = selectedEvent.duration * 1000;
     const newEndTime = new Date(newDateTime.getTime() + durationInMs);
 
@@ -227,7 +235,8 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
       event =>
         event.id !== selectedEvent.id &&
         ((newDateTime >= event.start && newDateTime < event.end) ||
-         (newEndTime > event.start && newEndTime <= event.end))
+         (newEndTime > event.start && newEndTime <= event.end) ||
+         (newDateTime <= event.start && newEndTime >= event.end))
     );
 
     if (hasOverlap) {
