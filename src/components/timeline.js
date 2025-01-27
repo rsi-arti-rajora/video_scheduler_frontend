@@ -40,13 +40,14 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
             const fileName = event?.file_name?.split('/').pop(); // Remove file extension from file name
 
             return {
-              id: event.id + fileName,
+              //id: event.target_id + fileName,
+              id: event.target_id,
               title: `${fileName} (${moment(startTime).format('HH:mm:ss')} - ${moment(endTime).format('HH:mm:ss')})`,
               start: startTime,
               end: endTime,
-              duration: (endTime - startTime) / 1000 / 60,
+              duration: (endTime - startTime) / 1000 ,
               key: event.file_name,
-              color: '#10b981',
+              color: event.color,
             };
           })
         );
@@ -171,6 +172,15 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
         }
       }
 
+      function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      }
+
       setEvents((prevEvents) => [
         ...prevEvents,
         {
@@ -181,9 +191,9 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
           originalTitle: item.title,
           duration: item.duration,
           key: item.key,
-          color: '#10b981',
+          color: getRandomColor(), // Use the assigned or fetched color
         },
-      ]);
+    ]);
       setSaveVisible(true);
     }, [events]),
     collect: (monitor) => ({
@@ -264,9 +274,11 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
 
   const handleSaveEvent = async () => {
     const eventData = events.map((event) => ({
+      target_id: event.id,
       file_name: event.key,
       start_time: moment(event.start).format('YYYY-MM-DDTHH:mm:ss.SSS'),
       duration: event.duration,
+      color: event.color,
     }));
 
     try {
