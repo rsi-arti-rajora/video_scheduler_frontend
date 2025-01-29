@@ -322,12 +322,28 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
         onEventDrop={({ event, start, end }) => {
           const durationInMs = event.duration * 1000;
           const dropEndTime = new Date(start.getTime() + durationInMs);
+
+          // Get the current time
+          const now = new Date();
+
+          // Check if the start time of the dragged event is in the past
+          if (start <= now) {
+            toast.error("You cannot drag events to a time in the past.");
+            return; // Prevent redragging
+          }
+
+          let event_fileName;
           // Prevent overlapping during drag
-          const hasOverlap = events.some(
-            (e) =>
+          const hasOverlap = events.some((e) => {
+            event_fileName = event?.key?.split('/').pop();
+            return (
               e.id !== event.id &&
-              ((start >= e.start && start < e.end) || (dropEndTime > e.start && dropEndTime <= e.end))
-          );
+              ((start >= e.start && start < e.end) ||
+                (dropEndTime > e.start && dropEndTime <= e.end) ||
+                (start <= e.start && dropEndTime >= e.end))
+            );
+          });
+          
 
           if (hasOverlap) {
             return;
@@ -335,7 +351,7 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
 
           setSaveVisible(true);
           const updatedEvents = events.map((e) =>
-            e.id === event.id ? { ...e, start, end: dropEndTime, title: `${event.originalTitle} (${moment(start).format('HH:mm:ss')} - ${moment(dropEndTime).format('HH:mm:ss')})` } : e
+            e.id === event.id ? { ...e, start, end: dropEndTime, title: `${event_fileName} (${moment(start).format('HH:mm:ss')} - ${moment(dropEndTime).format('HH:mm:ss')})` } : e
           );
           setEvents(updatedEvents);
         }}
