@@ -49,13 +49,15 @@ const apiService = {
     }
   },
 
-  scheduleVideo: async (videos) => {
+  scheduleVideo: async (videos, selectedDate) => {
     try {
       console.log("Sending videos:", videos);  // Log the array of videos to debug
+      console.log("Selected date: ", selectedDate);
       
       // Send the array of videos in the request body
       const response = await axios.post(`${API_BASE_URL}/schedule-video`, {
         videos: videos, // Array of video objects
+        selectedDate: selectedDate.toString(), // Additional parameter for the selected date
       });
       
       // Assuming the response contains an array of results for each video

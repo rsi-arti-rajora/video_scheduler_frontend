@@ -18,7 +18,7 @@ const DnDCalendar = withDragAndDrop(Calendar);
 const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
 const ONE_SECOND = 1 * 1000; // 1 second in milliseconds
 
-const TimeLine = ({ selectedDay, onDateChange }) => {
+const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
   const [events, setEvents] = useState([]);
   const [isSaveVisible, setSaveVisible] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date()); // Track the current time for the current time line
@@ -27,6 +27,12 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
   const [newEventTime, setNewEventTime] = useState('');
   // Memoized timeline date to avoid unnecessary re-renders
   const timelineDate = useMemo(() => (selectedDay instanceof Date ? selectedDay : new Date()), [selectedDay]);
+
+  
+  // Notify parent component about save button visibility
+  useEffect(() => {
+    setIsSaveVisible(isSaveVisible);
+  }, [isSaveVisible, setIsSaveVisible]);
 
   // Fetch events from backend
   useEffect(() => {
@@ -118,7 +124,9 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
 
       // Prevent scheduling before the current time
       if (dropDate.getTime() <= now.getTime()) {
-        dropDate = new Date(now.getTime() + 1000); // Adjust to 1 second after the current time
+        //dropDate = new Date(now.getTime() + 1000); // Adjust to 1 second after the current time
+        toast.error("Events cannot be scheduled in the past.");
+        return;
       }
 																													  
       const durationInMs = Math.round(item.duration) * 1000;
@@ -166,7 +174,7 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
 
           // Prevent infinite loop (just in case)
           if (nextAvailableStart.getDate() !== currentDate.getDate()) {
-            toast.error('No available time slots for this event on the selected date.');
+            toast.error('No time slots available for this event on the selected date.');
             return;
           }
         }
@@ -234,7 +242,7 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
 
     // Check if the new time is before or equal to the current time
     if (newDateTime <= now) {
-      toast.error('Please provide a future time for scheduling');
+      toast.error('Events cannot be scheduled in the past.');
       return;
     }
 
@@ -250,7 +258,7 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
     );
 
     if (hasOverlap) {
-      toast.error('This time slot overlaps with another event');
+      toast.error('Time slot conflicts with an existing event.');
       return;
     }
 
@@ -273,21 +281,49 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
   };
 
   const handleSaveEvent = async () => {
-    const eventData = events.map((event) => ({
+
+    // Get the current date from the calendar's date header
+    const dateHeader = document.querySelector('.rbc-toolbar-label');
+    let selectedDate = dateHeader ? new Date(dateHeader.textContent) : new Date();
+    // Ensure the date is valid
+    if (isNaN(selectedDate.getTime())) {
+      console.error('Invalid date in calendar header:', dateHeader.textContent);
+      selectedDate = new Date();
+    }  else {
+      // Set the year to the current year if the parsed year is not the current year
+      if (selectedDate.getFullYear() !== new Date().getFullYear()) {
+        selectedDate.setFullYear(new Date().getFullYear());
+      }
+    }
+
+    const filteredEvents = events.filter((event) => 
+      moment(event.start).isSame(selectedDate, 'day')
+    );
+
+    const eventData = filteredEvents.map((event) => ({
       target_id: event.id,
       file_name: event.key,
       start_time: moment(event.start).format('YYYY-MM-DDTHH:mm:ss.SSS'),
       duration: event.duration,
       color: event.color,
     }));
-
+    
     try {
-      await apiService.scheduleVideo(eventData);
+      await apiService.scheduleVideo(eventData, selectedDate);
       toast.success('Events saved successfully!');
       setSaveVisible(false);
     } catch (error) {
-      toast.error('Failed to save events. Please try again.');
+      toast.error('Events saving failed. Please retry.');
     }
+  };
+
+  // Add a new handler for navigation attempts
+  const handleNavigationAttempt = (newDate) => {
+    if (isSaveVisible) {
+      toast.error('Save events before changing the date.');
+      return;
+    }
+    onDateChange(newDate);
   };
 
   return (
@@ -307,7 +343,7 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
         timeslots={1}
         scrollToTime={timelineDate}
         date={timelineDate}
-        onNavigate={onDateChange}
+        onNavigate={handleNavigationAttempt}
         resizable={false} // Disable resizing
         draggableAccessor={() => true} // Enable dragging
         style={{
@@ -328,7 +364,7 @@ const TimeLine = ({ selectedDay, onDateChange }) => {
 
           // Check if the start time of the dragged event is in the past
           if (start <= now) {
-            toast.error("You cannot drag events to a time in the past.");
+            toast.error("Events cannot be scheduled in the past.");
             return; // Prevent redragging
           }
 
