@@ -1,4 +1,4 @@
-import {React, useState, useEffect, useMemo, useCallback } from 'react';
+import {React, useState, useEffect, useMemo, useCallback, useContext  } from 'react';
 
 import { useDrop } from 'react-dnd';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
@@ -10,6 +10,9 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import apiService from '../services/apiService';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AutomateModal from './AutomateModal';
+import { VideosContext } from '../contexts/VideosContext';
+
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -24,11 +27,20 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
   const [currentTime, setCurrentTime] = useState(new Date()); // Track the current time for the current time line
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAutomateModalOpen, setIsAutomateModalOpen] = useState(false);
   const [newEventTime, setNewEventTime] = useState('');
   // Memoized timeline date to avoid unnecessary re-renders
   const timelineDate = useMemo(() => (selectedDay instanceof Date ? selectedDay : new Date()), [selectedDay]);
+  const { videos } = useContext(VideosContext);
+  const [s3_videos, setS3Videos] = useState([]);
 
+  useEffect(() => {
+    if (videos.length > 0) {
+      setS3Videos(videos);
+    }
+  }, [videos]);
   
+
   // Notify parent component about save button visibility
   useEffect(() => {
     setIsSaveVisible(isSaveVisible);
@@ -281,23 +293,8 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
   };
 
   const handleSaveEvent = async () => {
-
-    // Get the current date from the calendar's date header
-    const dateHeader = document.querySelector('.rbc-toolbar-label');
-    let selectedDate = dateHeader ? new Date(dateHeader.textContent) : new Date();
-    // Ensure the date is valid
-    if (isNaN(selectedDate.getTime())) {
-      console.error('Invalid date in calendar header:', dateHeader.textContent);
-      selectedDate = new Date();
-    }  else {
-      // Set the year to the current year if the parsed year is not the current year
-      if (selectedDate.getFullYear() !== new Date().getFullYear()) {
-        selectedDate.setFullYear(new Date().getFullYear());
-      }
-    }
-
-    const filteredEvents = events.filter((event) => 
-      moment(event.start).isSame(selectedDate, 'day')
+      const filteredEvents = events.filter((event) => 
+      moment(event.start).isSame(timelineDate, 'day')
     );
 
     const eventData = filteredEvents.map((event) => ({
@@ -307,9 +304,9 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
       duration: event.duration,
       color: event.color,
     }));
-    
+
     try {
-      await apiService.scheduleVideo(eventData, selectedDate);
+      await apiService.scheduleVideo(eventData, timelineDate);
       toast.success('Events saved successfully!');
       setSaveVisible(false);
     } catch (error) {
@@ -326,13 +323,53 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
     onDateChange(newDate);
   };
 
+  // Handle new automated events
+  const handleAutomatedEvents = (newEvents) => {
+    // First, check for overlap
+    const hasOverlap = newEvents.some(newEvent => {
+        return events.some(existingEvent => {
+            // Convert start_time and end_time to timestamps (in milliseconds)
+            const newEventStart = newEvent.start.getTime();
+            const newEventEnd = newEventStart + newEvent.duration * 1000; // duration in milliseconds
+
+            const existingEventStart = existingEvent.start.getTime();
+            const existingEventEnd = existingEventStart + existingEvent.duration * 1000;
+
+            // Check if newEvent overlaps with existingEvent
+            return newEventEnd > existingEventStart && newEventStart < existingEventEnd;
+        });
+    });
+
+    if (hasOverlap) {
+        // Show error toast and exit the function early
+        toast.error("Can't schedule automated events due to overlap.");
+        return; // Exit the function without updating the state
+    }
+
+    // If no overlap, update events state and show success toast
+    setEvents(prev => {
+        setSaveVisible(true);
+        return [...prev, ...newEvents]; // Add the new events after state update
+    });
+    toast.success('Events automated successfully! Please save events');
+  };
+
+  useEffect(() => {
+    console.log('UPDATED events:', events);
+}, [events]); 
+
   return (
     <div className="calendar-container" ref={drop}>
-      {isSaveVisible && (
-        <button className="save-event-btn" onClick={handleSaveEvent}>
-          Save Events
-        </button>
-      )}
+      <div className="button-container" >
+        {isSaveVisible && (
+          <button className="save-event-btn" onClick={handleSaveEvent}>
+            Save Events
+          </button>
+        )}
+        {<button className="automate-btn" onClick={() => setIsAutomateModalOpen(true)}>
+          Automate
+        </button>}
+        </div>
 
       <DnDCalendar
         localizer={localizer}
@@ -393,6 +430,15 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
         }}
 		    onDoubleClickEvent={handleEventDoubleClick}		
       />
+      {isAutomateModalOpen && (
+        <AutomateModal
+          selectedDate={timelineDate}
+          s3_videos={s3_videos}
+          //events={events} 
+          onClose={() => setIsAutomateModalOpen(false)}
+          onAutomate={handleAutomatedEvents}
+        />
+      )}
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">

@@ -312,3 +312,21 @@
     background-color: red !important;
     height: 2px !important
   }
+
+  .automate-btn {
+    position: absolute;
+    top: -40px;
+    left: 10px;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+  
+.automate-btn:hover {
+    background-color: #0d9f68;
+}
