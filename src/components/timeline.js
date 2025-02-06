@@ -33,6 +33,7 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
   const timelineDate = useMemo(() => (selectedDay instanceof Date ? selectedDay : new Date()), [selectedDay]);
   const { videos } = useContext(VideosContext);
   const [s3_videos, setS3Videos] = useState([]);
+  const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
 
   useEffect(() => {
     if (videos.length > 0) {
@@ -356,7 +357,19 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
 
   useEffect(() => {
     console.log('UPDATED events:', events);
-}, [events]); 
+  }, [events]); 
+
+  const handleDeleteAllEvents = () => {
+    // Filter events for the selected date and remove them
+    const updatedEvents = events.filter(event => 
+      !moment(event.start).isSame(timelineDate, 'day')
+    );
+    setEvents(updatedEvents);
+    setIsDeleteAllModalOpen(false);
+    setSaveVisible(true);
+    toast.success('All Events deleted successfully for timeline date! Please save events');
+  };
+
 
   return (
     <div className="calendar-container" ref={drop}>
@@ -368,6 +381,9 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
         )}
         {<button className="automate-btn" onClick={() => setIsAutomateModalOpen(true)}>
           Automate
+        </button>}
+        {<button className="delete-all-btn" onClick={() => setIsDeleteAllModalOpen(true)}>
+          Delete All
         </button>}
         </div>
 
@@ -472,6 +488,25 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
               </button>
             </div>
           </div>				 
+        </div>
+      )}
+      {isDeleteAllModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Delete All Events</h2>
+            <div className="modal-body">
+              <p>Are you sure you want to delete all events for {moment(timelineDate).format('DD-MMM-YY')}?</p>
+              <p className="warning-text">This action cannot be undone.</p>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setIsDeleteAllModalOpen(false)}>
+                Cancel
+              </button>
+              <button className="confirm-delete-btn" onClick={handleDeleteAllEvents}>
+                OK
+              </button>
+            </div>
+          </div>
         </div>
       )}
       <ToastContainer />
