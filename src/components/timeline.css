@@ -88,36 +88,40 @@
     position: absolute;
     top: -300px;
     right: 10px;
-    background-color: #10b981;
+    background-color: #0abf53;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 14px;
     font-size: 14px;
-    border-radius: 5px;
+    border-radius: 20px;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
   
 .restart-stream-btn:hover {
-    background-color: #0d9f68;
+    background-color: #089f43;
 }
   
 .save-event-btn {
-    position: absolute;
+   /* position: absolute;
     top: -40px;
-    right: 10px;
-    background-color: #10b981;
-    color: white;
+    right: 10px; */
+    /* background-color: #0abf53; */
+    color: #0abf53;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 14px;
     font-size: 14px;
-    border-radius: 5px;
+    border-radius: 20px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    border: 1px solid #0abf53;
+    font-weight: 600;
+    float: right;
 }
   
 .save-event-btn:hover {
-    background-color: #0d9f68;
+    background-color:#0abf53;
+    color: #fff;
 }
   
 /* Modal Styles */
@@ -314,39 +318,46 @@
   }
 
   .automate-btn {
-    position: absolute;
+   /* position: absolute;
     top: -40px;
-    left: 10px;
-    background-color: #10b981;
-    color: white;
+    left: 10px;*/
+    /* background-color: #0ABF52; */
+    color: #0ABF52;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 14px;
     font-size: 14px;
-    border-radius: 5px;
+    border-radius: 20px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    border: 1px solid #0ABF52;
+    font-weight: 600;
 }
   
 .automate-btn:hover {
-    background-color: #0d9f68;
+    background-color: #0ABF52;
+    color: #fff;
 }
 
 .delete-all-btn {
-    position: absolute;
+   /* position: absolute;
     top: -40px;
-    left: 150px;
-    background-color: #10b981;
-    color: white;
+    left: 120px;*/
+    /* background-color: #d94d36; */
+    color: #d94d36;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 14px;
     font-size: 14px;
-    border-radius: 5px;
+    border-radius: 20px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    border: 1px solid #d94d36;
+    font-weight: 600;
+    margin-left: 15px;
 }
 
 .delete-all-btn:hover {
-    background-color: #0d9f68;
+    background-color: #d94d36;
+    color: #fff;
 }
 
 .warning-text {
@@ -367,4 +378,16 @@ margin-left: 10px;
 
 .confirm-delete-btn:hover {
 background-color: #c82333;
+}
+
+.button-container {
+    /*background: #ffffff;*/
+    height: 48px;
+    padding: 8px 8px;
+    border-radius: 8px;
+    position: absolute;
+    top: -53px;
+    width: 100%;
+    box-sizing: border-box;
+    /*box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);*/
 }

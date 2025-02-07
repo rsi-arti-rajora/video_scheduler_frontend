@@ -2,7 +2,7 @@
 .scheduler-container {
   display: flex;
   min-height: 100vh;
-  background-color: #f3f4f6;
+  background-color:#000000;
 }
 
 /* Sidebar */
@@ -41,7 +41,7 @@
 }
 
 .mini-calendar-day.active {
-  background-color: #2563eb;
+  background-color: #0abf53;
   border-radius: 0.25rem;
 }
 
@@ -66,7 +66,7 @@
 }
 
 .source-list-file.active {
-  color: #60a5fa;
+  color: #0abf53;
 }
 
 /* Main Content */
@@ -75,12 +75,14 @@
   padding: 1.5rem;
   height: auto;
   width: auto;
+  background: #f3f4f6;
 }
 
 .welcome-header {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
+  text-align: left;
+  margin: 0;
 }
 
 /* Preview Sections */
@@ -133,6 +135,7 @@
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-top: 42px;
 }
 
 .calendar-header {
@@ -284,9 +287,9 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .scheduler-container {
+ /* .scheduler-container {
     flex-direction: column;
-  }
+  }*/
 
   .sidebar {
     width: 100%;
@@ -448,4 +451,74 @@
 /* Add this to your CSS */
 .react-big-calendar {
   background-color: white !important;
+}
+
+
+.scheduler-container .css-g2u80a {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background-color: #303030;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.scheduler-container .css-153ijg8-MuiTypography-root {
+  margin-bottom: 0px;
+}
+.scheduler-container .MuiTypography-subtitle2{
+  font-size: 1rem;
+}
+.scheduler-container .css-1wzbb2b-MuiListItem-root {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-bottom: 4px;
+}
+.scheduler-container .css-rizt0-MuiTypography-root {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.scheduler-container .css-1wzbb2b-MuiListItem-root:hover {
+  background-color:#0abf53;
+}
+.scheduler-container  .css-1ol10sz{
+  margin-bottom: 12px;
+}
+.scheduler-container .css-ta9ypx-MuiSvgIcon-root{
+  width: 1.8em;
+  height: 1.8em;
+}
+.scheduler-container .css-74d805-MuiButtonBase-root-MuiButton-root{
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 20px;
+  background-color: #0abf53;
+  min-width: 102px;
+  line-height: normal;
+}
+.scheduler-container .css-74d805-MuiButtonBase-root-MuiButton-root:hover {
+  background-color: #089f43;
+}
+.scheduler-container .css-rzjok-MuiButtonBase-root-MuiButton-root{
+  border-radius: 20px;
+  min-width: 78px;
+  line-height: normal;
+}
+.scheduler-container .css-qwujcl{
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  margin-top: 0;
+}
+.scheduler-container .css-14p70kh-MuiTypography-root {
+  font-size: 1rem;
+}
+.scheduler-container .css-1vlt7r9-MuiPaper-root{
+  height: auto;
+}
+
+.css-1k9hkw1-MuiButtonBase-root-MuiButton-root{
+  background-color:#0abf53!important;
 }

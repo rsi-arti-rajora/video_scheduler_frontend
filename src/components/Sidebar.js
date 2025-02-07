@@ -64,9 +64,9 @@ const Sidebar = () => {
                 startIcon={<Add />}
                 color="inherit"
                 sx={{
-                  bgcolor: 'primary.main',
+                  bgcolor: '#0abf53',
                   color: 'white',
-                  '&:hover': { bgcolor: 'primary.dark' },
+                  '&:hover': { bgcolor: '#089f43' },
                 }}
               >
                 Add
