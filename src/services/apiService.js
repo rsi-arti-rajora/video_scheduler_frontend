@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 //const API_BASE_URL = 'http://localhost:5000'; // Update with your backend's URL
-const API_BASE_URL = 'http://ec2-3-108-249-45.ap-south-1.compute.amazonaws.com:5000'; // Update with your backend's URL
+const API_BASE_URL = 'http://ec2-43-204-97-164.ap-south-1.compute.amazonaws.com:5000'; // Update with your backend's URL
 
 const apiService = {
   fetchMetadata: async () => {

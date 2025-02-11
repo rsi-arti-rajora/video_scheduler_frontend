@@ -53,7 +53,7 @@ const PreviewUI = () => {
   const pollingInterval = useRef(null);
 
   function getNewHlsUrl() {
-    return `https://tvunativeoverlay.s3.ap-south-1.amazonaws.com/hls/master.m3u8?timestamp=${new Date().getTime()}&random=${Math.random()}`;
+    return `https://f53112b70bc31005.mediapackage.ap-south-1.amazonaws.com/out/v1/43e8b8ccd16945efa916d5da03075a02/index.m3u8?timestamp=${new Date().getTime()}&random=${Math.random()}`;
   }
 
   const restartStream = async () => {
