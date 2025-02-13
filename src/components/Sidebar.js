@@ -1,40 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Alert,
-  Button,
-} from '@mui/material';
+import React, { useState, useContext } from 'react';
+import { Box, Typography, CircularProgress, Alert, Button } from '@mui/material';
 import { Add } from '@mui/icons-material';
 
 import UploadDialog from './UploadDialog';
 import FileList from './FileList';
-import apiService from '../services/apiService';
 import VideoPreview from './VideoPreview';
+import { VideosContext } from '../contexts/VideosContext';
 
 const Sidebar = () => {
-  const [videos, setVideos] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { videos, setVideos, isLoading, error } = useContext(VideosContext);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
-
-  useEffect(() => {
-    const fetchVideos = async () => {
-      setIsLoading(true);
-      try {
-        const fetchedVideos = await apiService.fetchMetadata();
-        setVideos(fetchedVideos);
-      } catch (err) {
-        setError('Failed to fetch videos from S3 bucket.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchVideos();
-  }, [showUploadDialog]);
 
   const handleSelectVideo = (videoId) => {
     setVideos((prev) =>
@@ -53,41 +29,41 @@ const Sidebar = () => {
   };
 
   return (
-      <Box display="flex" minHeight="100vh" bgcolor="gray.100">
-        <Box width={300} bgcolor="black" color="white" p={2} position="relative">
-          <VideoPreview selectedVideo={selectedVideo ? selectedVideo.file_url : null} />
-          <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="subtitle2">Source Input Folders</Typography>
-              <Button
-                onClick={() => setShowUploadDialog(true)}
-                startIcon={<Add />}
-                color="inherit"
-                sx={{
-                  bgcolor: '#0abf53',
-                  color: 'white',
-                  '&:hover': { bgcolor: '#089f43' },
-                }}
-              >
-                Add
-              </Button>
-            </Box>
-
-            {isLoading ? (
-              <CircularProgress color="inherit" />
-            ) : error ? (
-              <Alert severity="error">{error}</Alert>
-            ) : (
-              <FileList videos={videos} onSelect={handleSelectVideo} />
-            )}
+    <Box display="flex" minHeight="100vh" bgcolor="gray.100">
+      <Box width={300} bgcolor="black" color="white" p={2} position="relative">
+        <VideoPreview selectedVideo={selectedVideo ? selectedVideo.file_url : null} />
+        <Box>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Typography variant="subtitle2">Source Input Folders</Typography>
+            <Button
+              onClick={() => setShowUploadDialog(true)}
+              startIcon={<Add />}
+              color="inherit"
+              sx={{
+                bgcolor: '#0abf53',
+                color: 'white',
+                '&:hover': { bgcolor: '#089f43' },
+              }}
+            >
+              Add
+            </Button>
           </Box>
+
+          {isLoading ? (
+            <CircularProgress color="inherit" />
+          ) : error ? (
+            <Alert severity="error">{error}</Alert>
+          ) : (
+            <FileList videos={videos} onSelect={handleSelectVideo} />
+          )}
         </Box>
-        <UploadDialog
-          isOpen={showUploadDialog}
-          onClose={() => setShowUploadDialog(false)}
-          onUploadSuccess={handleUploadSuccess}
-        />
       </Box>
+      <UploadDialog
+        isOpen={showUploadDialog}
+        onClose={() => setShowUploadDialog(false)}
+        onUploadSuccess={handleUploadSuccess}
+      />
+    </Box>
   );
 };
 

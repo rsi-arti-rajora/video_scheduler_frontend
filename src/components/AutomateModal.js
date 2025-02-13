@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import moment from 'moment';
 import { toast } from 'react-toastify';
 import { useDrag, useDrop } from 'react-dnd';
+import './AutomateModal.css';
+
 
 // Helper Functions remain the same
 const generateRandomColor = () => {
@@ -40,27 +42,13 @@ const DraggableVideoItem = ({ video, index, moveVideo, removeVideo }) => {
   return (
     <div
       ref={(node) => drag(drop(node))}
-      style={{
-        opacity: isDragging ? 0.5 : 1,
-        display: 'flex',
-        alignItems: 'center',
-        padding: '10px',
-        border: '1px solid #ddd',
-        marginBottom: '5px',
-        cursor: 'move',
-        backgroundColor: 'white'
-      }}
+      className="draggable-video-item"
+      style={{ opacity: isDragging ? 0.5 : 1 }}
     >
       <span style={{ flex: 1 }}>{video.file_name}</span>
       <button
         onClick={() => removeVideo(index)}
-        style={{
-          backgroundColor: 'white',
-          color: 'red',
-          border: 'none',
-          padding: '5px 10px',
-          borderRadius: '3px'
-        }}
+        className="draggable-video-item-button"
       >
         x
       </button>
@@ -91,20 +79,11 @@ const MultiSelect = ({ options, selectedOptions, onChange }) => {
   const areAllSelected = selectedOptions.length === options.length;
 
   return (
-    <div style={{ position: 'relative', width: '100%', marginBottom: '20px' }}>
+    <div className="multi-select-container">
       {/* Selection Box with Dropdown Arrow */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          border: '1px solid #ddd',
-          padding: '10px',
-          cursor: 'pointer',
-          backgroundColor: 'white',
-          borderRadius: '4px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
+        className="multi-select-box"
       >
         <span>
           {selectedOptions.length > 0 
@@ -112,35 +91,18 @@ const MultiSelect = ({ options, selectedOptions, onChange }) => {
             : 'Select files'}
         </span>
         {/* Dropdown Arrow */}
-        <span style={{ fontSize: '14px', marginLeft: '10px' }}>
+        <span className="modal-multiselect-arrow">
           {isOpen ? '▲' : '▼'}
         </span>
       </div>
       
       {/* Dropdown Options */}
       {isOpen && (
-        <div style={{
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          right: 0,
-          backgroundColor: 'white',
-          border: '1px solid #ddd',
-          borderRadius: '4px',
-          maxHeight: '200px',
-          overflowY: 'auto',
-          zIndex: 1000
-        }}>
+        <div className="multi-select-dropdown">
           {/* Select All Option */}
           <div
             onClick={handleSelectAll}
-            style={{
-              padding: '10px',
-              cursor: 'pointer',
-              backgroundColor: '#f5f5f5',
-              borderBottom: '2px solid #ddd',
-              fontWeight: 'bold'
-            }}
+            className="multi-select-all"
           >
             {areAllSelected ? '✓ Deselect All' : 'Select All'}
           </div>
@@ -150,15 +112,11 @@ const MultiSelect = ({ options, selectedOptions, onChange }) => {
             <div
               key={option.id}
               onClick={() => handleOptionClick(option)}
+              className="multi-select-option"
               style={{
-                padding: '10px',
-                cursor: 'pointer',
                 backgroundColor: selectedOptions.some(selected => selected.id === option.id)
                   ? '#e6f3ff'
-                  : 'white',
-                ':hover': {
-                  backgroundColor: '#f5f5f5'
-                }
+                  : 'white'
               }}
             >
               {option.file_name}
@@ -279,35 +237,9 @@ const AutomateModal = ({ selectedDate, s3_videos = [], onClose, onAutomate }) =>
   };
 
   return (
-    <div className="modal-overlay" style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000
-    }}>
-      <div className="modal-content" style={{
-        backgroundColor: 'white',
-        padding: '20px',
-        borderRadius: '12px',
-        width: '80%',
-        maxWidth: '500px',
-        height: '75vh', // Adjusted to better fit contents
-        minHeight: '420px',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden'
-      }}>
-        <h2 style={{ 
-          margin: '0 0 15px 0',
-          fontSize: '22px',
-          fontWeight: '600'
-        }}>
+    <div className="modal-overlay" >
+      <div className="modal-content" >
+        <h2 className="modal-overview-h2" >
           Automate Events For Date "{moment(selectedDate).format('DD-MMM-YY')}"
         </h2>
   
@@ -318,15 +250,7 @@ const AutomateModal = ({ selectedDate, s3_videos = [], onClose, onAutomate }) =>
         />
   
         {/* File List - Increased Height */}
-        <div className="file-list" style={{ 
-          flex: 2, // Increased height to show at least 4 items
-          overflowY: 'auto',
-          marginTop: '10px',
-          padding: '8px',
-          border: '1px solid #eee',
-          borderRadius: '8px',
-          backgroundColor: 'white'
-        }}>
+        <div className="file-list" >
           {fileList.map((video, index) => (
             <DraggableVideoItem
               key={video.id}
@@ -339,83 +263,38 @@ const AutomateModal = ({ selectedDate, s3_videos = [], onClose, onAutomate }) =>
         </div>
   
         {/* Start & End Time Section - Reduced Gap */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '15px',
-          marginTop: '10px', // Reduced gap
-          padding: '10px',
-          backgroundColor: 'white',
-          borderRadius: '8px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <label style={{ width: '80px', fontWeight: '500' }}>Start Time:</label>
+        <div className = "time-selection-container" >
+          <div className = "time-input-group" >
+            <label className = "time-label" >Start Time:</label>
             <input
               type="time"
               value={automationStartTime}
               onChange={(e) => setAutomationStartTime(e.target.value)}
-              style={{
-                marginLeft: '8px',
-                padding: '6px',
-                width: '110px',
-                borderRadius: '4px',
-                border: '1px solid #ddd'
-              }}
+              className="time-input"
             />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <label style={{ width: '80px', fontWeight: '500' }}>End Time:</label>
+          <div className = "time-input-group" >
+            <label className = "time-label" >End Time:</label>
             <input
               type="time"
               value={automationEndTime}
               onChange={(e) => setAutomationEndTime(e.target.value)}
-              style={{
-                marginLeft: '8px',
-                padding: '6px',
-                width: '110px',
-                borderRadius: '4px',
-                border: '1px solid #ddd'
-              }}
+              className="time-input"
             />
           </div>
         </div>
   
         {/* Buttons Section - Reduced Bottom Space */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'flex-end', 
-          gap: '10px',
-          padding: '15px 10px 0 10px',
-          borderTop: '1px solid #eee',
-          marginTop: 'auto' // Pushes buttons to bottom
-        }}>
+        <div className = "modal-buttons" >
           <button
             onClick={onClose}
-            style={{
-              padding: '8px 20px',
-              backgroundColor: '#f44336',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
+            className="modal-cancel-button"
           >
             Cancel
           </button>
           <button
             onClick={handleAutomationSetup}
-            style={{
-              padding: '8px 20px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
+            className="modal-set-button"
           >
             Set
           </button>

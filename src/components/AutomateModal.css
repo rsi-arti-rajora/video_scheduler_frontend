@@ -1,0 +1,188 @@
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  /* Modal Content */
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 80%;
+    max-width: 500px;
+    height: 75vh;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .modal-overview-h2{
+    margin: '0 0 15px 0';
+    font-size: 22px;
+    font-weight: 600;
+  }
+  
+  /* Modal Header */
+  .modal-header {
+    margin: 0 0 15px 0;
+    font-size: 22px;
+    font-weight: 600;
+  }
+  
+  /* MultiSelect Component */
+  .multi-select-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .multi-select-box {
+    border: 1px solid #ddd;
+    padding: 10px;
+    cursor: pointer;
+    background-color: white;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .multi-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+  
+  .multi-select-option {
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  .multi-select-option:hover {
+    background-color: #f5f5f5 !important;
+  }
+  
+  .multi-select-all {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #f5f5f5;
+    border-bottom: 2px solid #ddd;
+    font-weight: bold;
+  }
+  
+  /* Draggable Video Items */
+  .draggable-video-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    cursor: move;
+    background-color: white;
+  }
+  
+  .draggable-video-item-span {
+    flex: 1;
+  }
+  
+  .draggable-video-item-button {
+    background-color: white;
+    color: red;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    /* cursor: pointer; */
+  }
+  
+  /* File List Container */
+  .file-list {
+    flex: 2;
+    overflow-y: auto;
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background-color: white;
+  }
+  
+  /* Start & End Time Section */
+  .time-selection-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 8px;
+  }
+  
+  .time-input-group {
+    display: flex;
+    align-items: center;
+  }
+  
+  .time-label {
+    width: 80px;
+    font-weight: 500;
+  }
+  
+  .time-input {
+    margin-left: 8px;
+    padding: 6px;
+    width: 110px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+  
+  /* Buttons Section */
+  .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 15px 10px 0 10px;
+    border-top: 1px solid #eee;
+    margin-top: auto;
+  }
+  
+  .modal-cancel-button {
+    padding: 8px 20px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .modal-set-button {
+    padding: 8px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .modal-multiselect-arrow {
+    font-size: '14px';
+    margin-left: '10px'
+  }
