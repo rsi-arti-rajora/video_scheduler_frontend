@@ -1,13 +1,78 @@
 import axios from 'axios';
 
-//const API_BASE_URL = 'http://localhost:5000'; // Update with your backend's URL
-const API_BASE_URL = 'http://ec2-43-204-97-164.ap-south-1.compute.amazonaws.com:5000'; // Update with your backend's URL
+const API_BASE_URL = 'http://localhost:5000'; // Update with your backend's URL
+// const API_BASE_URL = 'http://ec2-43-204-97-164.ap-south-1.compute.amazonaws.com:5000'; // Update with your backend's URL
 
 const apiService = {
+
+  fetchVideos: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/videos`);
+      return response.data; // Assuming the response contains { data: [...] }
+    } catch (error) {
+      console.error('Error fetching metadata:', error);
+      throw error;
+    }
+  },
+
+  streamStatus: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/stream-status`);
+      return response.data; // Assuming the response contains { data: [...] }
+    } catch (error) {
+      console.error('Error fetching metadata:', error);
+      throw error;
+    }
+  },
+
+  startStream: async (payload) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/start-stream`, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    } catch (error) {
+      console.error("Error in startStream API:", error);
+      throw error;
+    }
+  },
+
+  stopStream: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/stop-stream`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    } catch (error) {
+      console.error("Error in stopStream API:", error);
+      throw error;
+    }
+  },
+
+  getStreamData: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/get_stream_data`);
+      return response.data;
+    } catch (error) {
+      console.error("Error in getStreamData API:", error);
+      throw error;
+    }
+  },
+
   fetchMetadata: async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/fetch-metadata`);
-
       return response.data; // Assuming the response contains { data: [...] }
     } catch (error) {
       console.error('Error fetching metadata:', error);
@@ -25,7 +90,6 @@ const apiService = {
       throw error;
     }
   },
-
 
   generatePresignedUrl: async (fileName) => {
     try {
@@ -77,17 +141,15 @@ const apiService = {
       throw error;
     }
   },
-   // Upload file using the presigned URL
- uploadFile: async (file, onProgress) => {
+  
+  // Upload file using the presigned URL
+  uploadFile: async (file, onProgress) => {
   try {
     // Step 1: Get the presigned URL
     const presignedUrl = await apiService.generatePresignedUrl(file.name);
-    
-
     // Step 2: Upload the file using the presigned URL
     const formData = new FormData();
     formData.append('file', file);
-
     const config = {
       headers: {
         'Content-Type': 'video/mp4',
@@ -98,16 +160,14 @@ const apiService = {
       },
     };
     console.log("presignedUrl", presignedUrl);
-
     await axios.put(presignedUrl, file, config); // PUT request to the presigned URL
-
   } catch (error) {
     console.error('Error uploading file:', error);
     throw error;
-  }
-},
+    }
+  },
  
-restartStream: async () => {
+  restartStream: async () => {
     try {
       await axios.get(`${API_BASE_URL}/start-ffmpeg-stream`);
       return 'Stream restarted successfully!';
@@ -116,7 +176,6 @@ restartStream: async () => {
       throw error;
     }
   },
-
 };
 
 export default apiService;

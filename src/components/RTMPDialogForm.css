@@ -1,0 +1,117 @@
+/* /Live Stream Popup */
+.liveStream-popup .MuiPaper-root{
+  background-color: #000;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.liveStream-popup .MuiSelect-select{
+  background-color: #3e3e3e;
+  border: none;
+  color: #ffffff;
+  padding: 9.5px 14px;
+  font-size: 14px;
+}
+.liveStream-popup .MuiSelect-select:active, .liveStream-popup .MuiSelect-select input:active{
+  border: none;
+  outline: auto;
+}
+.liveStream-popup .MuiInputBase-root:focus-visible{
+  border: none;
+  outline: auto;
+}
+.liveStream-popup .MuiInputBase-root:focus{
+  border: none;
+  outline: auto;
+}
+.liveStream-popup .css-cmpglg-MuiFormControl-root-MuiTextField-root:focus {
+  border: none!important;
+  outline: auto!important;
+  box-shadow: none;
+}
+.liveStream-popup .css-ovbmre-MuiInputBase-root-MuiOutlinedInput-root-MuiSelect-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: transparent;
+}
+.css-1blp12k-MuiInputBase-root-MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: transparent;
+}
+
+.liveStream-popup .MuiOutlinedInput-input {
+  background-color: #3e3e3e;
+  border: none;
+  color: #ffffff;
+  padding: 9.5px 14px;
+  font-size: 14px;
+}
+.liveStream-popup .MuiOutlinedInput-input:focus{
+  border: none;
+  outline: auto;
+}
+
+.liveStream-popup .MuiSelect-select{
+  color: #ffffff;
+}
+.liveStream-popup .MuiSelect-icon{
+  color: #ffffff;
+}
+.liveStream-popup .MuiSvgIcon-root{
+  fill: rgb(255 255 255 / 54%);
+}
+.liveStream-popup .liveStream-header {
+  background: none;
+  border-bottom: 2px dotted #464646;
+  border-radius: 0;
+  padding: 16px 10px;
+  line-height: normal;
+  font-size: 16px;
+}
+.liveStream-popup h2 {
+  font-size: 15px;
+}
+.liveStream-popup h3 {
+  font-size: 14px;
+}
+.liveStream-popup .MuiTypography-root {
+  font-weight: 400;
+  font-size: 14px;
+}
+.liveStream-popup .MuiSvgIcon-root {
+  fill: rgb(255 255 255 / 100%);
+}
+.liveStream-popup .btn-addrow {
+  background: transparent;
+  border: 1px solid #ededed;
+  color: #fff;
+}
+.liveStream-popup  .close {
+  position: absolute;
+  right: 20px;
+}
+.liveStream-popup .MuiRadioGroup-root{
+  display: flex;
+  flex-direction: row;
+}
+/* scroll bar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 2px #000000;
+  border-radius: 5px;
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #7d8288;
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7d8288;
+}
+.liveStream-popup .MuiButton-root.Mui-disabled {
+  color: rgba(255, 255, 255, 0.7) !important;    /* White text with higher opacity */
+  background-color: #444 !important;             /* Dark gray background to contrast with black */
+  opacity: 1 !important;                         /* Force full visibility */
+}
+.MuiFormControlLabel-label.Mui-disabled {
+  color: rgba(255, 255, 255, 0.87) !important;
+}

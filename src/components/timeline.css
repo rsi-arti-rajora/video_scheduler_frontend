@@ -360,6 +360,28 @@
     color: #fff;
 }
 
+.live-stream-btn {
+    /* position: absolute;
+     top: -40px;
+     left: 10px;*/
+     /* background-color: #0ABF52; */
+    color: #37b8eb;
+    border: none;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: 1px solid #37b8eb;
+    font-weight: 600;
+    margin-left: 15px;
+}
+   
+.live-stream-btn:hover {
+    background-color: #4eb1ef;
+    color: #fff;
+}
+
 .warning-text {
 color: #dc3545;
 font-weight: 500;
