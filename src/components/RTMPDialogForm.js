@@ -59,11 +59,11 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
     }
   }, [sourceType, isReadOnly]);
 
-  // Periodically check stream status
-  useEffect(() => {
-    const interval = setInterval(fetchStreamStatus, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  // // Periodically check stream status
+  // useEffect(() => {
+  //   const interval = setInterval(fetchStreamStatus, 5000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const fetchStreamStatus = async () => {
     try {
@@ -286,7 +286,7 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
           )}
         </DialogContent>
         <DialogActions sx={{ padding: 2 }}>
-          <Button variant="contained" color="primary" onClick={handleSubmit} disabled={isReadOnly || scheduleType === "now" || isStreaming }>
+          <Button variant="contained" color="primary" onClick={stopStreaming} disabled={isReadOnly || scheduleType === "now" || isStreaming }>
             Save
           </Button>
           <Button
