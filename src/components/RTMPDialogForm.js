@@ -59,12 +59,6 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
     }
   }, [sourceType, isReadOnly]);
 
-  // // Periodically check stream status
-  // useEffect(() => {
-  //   const interval = setInterval(fetchStreamStatus, 5000);
-  //   return () => clearInterval(interval);
-  // }, []);
-
   const fetchStreamStatus = async () => {
     try {
       const response = await apiService.streamStatus();
@@ -104,7 +98,7 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
       // Map DB streams to form rows; update mapping if you have title info
       const mappedRows = streamData.streams.map((s) => ({
         id: s.streamId,
-        title: "", // Update to s.title if available
+        title: s.title, // Update to s.title if available
         url: s.outputUrl,
       }));
       setRows(mappedRows);
@@ -189,7 +183,7 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
       await apiService.stopStream();
       setIsStreaming(false);
       // Reset form after stopping the stream
-      resetForm();
+      // resetForm();
     } catch (error) {
       console.error("Error stopping stream:", error);
     }
