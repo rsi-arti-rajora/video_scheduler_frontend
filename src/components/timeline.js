@@ -12,7 +12,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AutomateModal from './AutomateModal';
 import { VideosContext } from '../contexts/VideosContext';
-
+import RTMPDialogForm from './RTMPDialogForm';
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -34,6 +34,8 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
   const { videos } = useContext(VideosContext);
   const [s3_videos, setS3Videos] = useState([]);
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
+  const [isStreamModalOpen, setIsStreamModalOpen] = useState(false);
+  const [isLiveStreamDialogOpen, setIsLiveStreamDialogOpen] = useState(false);
 
   useEffect(() => {
     if (videos.length > 0) {
@@ -385,6 +387,10 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
         {<button className="delete-all-btn" onClick={() => setIsDeleteAllModalOpen(true)}>
           Delete All
         </button>}
+        <RTMPDialogForm isOpen={isLiveStreamDialogOpen} onClose={() => setIsLiveStreamDialogOpen(false)} initialDate={moment(timelineDate).format('DD-MMM-YY')} />
+        {<button className="live-stream-btn" onClick={() => setIsLiveStreamDialogOpen(true)}>
+         Live Stream
+        </button>}
         </div>
 
       <DnDCalendar
@@ -509,6 +515,39 @@ const TimeLine = ({ selectedDay, onDateChange, setIsSaveVisible }) => {
           </div>
         </div>
       )}
+      {/* {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Event Management</h2>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Event:</label>
+                <div className="event-title">{selectedEvent?.originalTitle}</div>
+              </div>
+              
+              <div className="form-group">
+                <label>Reschedule to:</label>
+                <input
+                  type="datetime-local"
+                  value={newEventTime}
+                  onChange={(e) => setNewEventTime(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="delete-btn" onClick={handleDeleteEvent}>
+                Delete Event
+              </button>
+              <button className="cancel-btn" onClick={() => setIsModalOpen(false)}>
+                Cancel
+              </button>
+              <button className="reschedule-btn" onClick={handleRescheduleEvent}>
+                Reschedule
+              </button>
+            </div>
+          </div>				 
+        </div>
+      )} */}
       <ToastContainer />
     </div>
   );
