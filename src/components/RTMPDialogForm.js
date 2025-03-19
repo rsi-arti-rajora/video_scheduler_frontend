@@ -1,4 +1,4 @@
-import { React, useState, useEffect } from "react";
+import { React, useState, useEffect,useContext } from "react";
 import axios from "axios";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { toast } from "react-toastify";
 import apiService from "../services/apiService";
 import "./RTMPDialogForm.css";
+import { VideosContext } from "../contexts/VideosContext";
 
 export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
   // Form state
@@ -26,6 +27,7 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
   const [sourceType, setSourceType] = useState("list");
   const [selectedSource, setSelectedSource] = useState("");
   const [rows, setRows] = useState([{ id: Date.now(), title: "", url: "" }]);
+  const { videos } = useContext(VideosContext);
 
   // Persisted record and streaming status
   const [streamData, setStreamData] = useState(null);
@@ -40,17 +42,15 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
   const isReadOnly = isStreaming && streamData !== null;
 
   // Fetch available videos for the source list
+
   useEffect(() => {
-    const fetchS3Urls = async () => {
-      try {
-        const fetchedEvents = await apiService.fetchVideos();
-        setS3BucketUrls(fetchedEvents);
-      } catch (error) {
-        console.error("Error fetching S3 URLs:", error);
-      }
-    };
-    fetchS3Urls();
-  }, []);
+    if (videos.length > 0) {
+      // return file_url and fule name
+      setS3BucketUrls(videos);
+       
+    }
+  }, [videos]);
+  
 
   // When sourceType changes, reset selectedSource (only if form is editable)
   useEffect(() => {
@@ -96,6 +96,7 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
       setTime(streamData.time);
       setSourceType(streamData.sourceType);
       setSelectedSource(streamData.selectedSource);
+      setIsStreaming(streamData.status);
       // Map DB streams to form rows; update mapping if you have title info
       const mappedRows = streamData.streams.map((s) => ({
         id: s.streamId,
@@ -180,12 +181,13 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
       toast.info("Please enter a valid  URL.");
       return;
     }
-    if (sourceType === "list" && !s3BucketUrls.includes(selectedSource)) {
+    if (sourceType === "list" && selectedSource === "") {
       toast.info("Please select a valid video from the list.");
       return;
     }
     const payload = {
       date: format(date, "yyyy-MM-dd"),
+      streamDataId: Date.now(),
       scheduleType,
       time: scheduleType === "later" ? time : "Now",
       sourceType,
@@ -251,13 +253,16 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
               value={selectedSource}
               onChange={(e) => setSelectedSource(e.target.value)}
               disabled={isReadOnly}
+              displayEmpty
+              renderValue={(selected) => (selected ? s3BucketUrls.find(item => item.file_url === selected)?.file_name : "Please select a video")}
+
             >
-              <MenuItem value="" disabled>
+              {/* <MenuItem value="" disabled>
                 Please select a video
-              </MenuItem>
-              {s3BucketUrls.map((url, index) => (
-                <MenuItem key={index} value={url}>
-                  {url}
+              </MenuItem> */}
+              {s3BucketUrls.map((item, index) => (
+                <MenuItem key={index} value={item.file_url}>
+                  {item.file_name} 
                 </MenuItem>
               ))}
             </Select>
