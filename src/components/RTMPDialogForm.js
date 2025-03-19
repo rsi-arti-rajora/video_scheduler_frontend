@@ -55,6 +55,7 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
   // When sourceType changes, reset selectedSource (only if form is editable)
   useEffect(() => {
     if (!isReadOnly) {
+      console.log("Resetting selected source");
       setSelectedSource("");
     }
   }, [sourceType, isReadOnly]);
@@ -160,6 +161,29 @@ export default function RTMPDialogForm({ isOpen, onClose, initialDate }) {
   };
 
   const startStreaming = async () => {
+
+    if (rows.length === 0 || rows.some((row) => !row.title || !row.url)) {
+      toast.info("At least one platform entry is required with title and URL.");
+      return;
+    }
+    if (!selectedSource) {
+      toast.info("Please select a source video or enter a live URL.");
+      return;
+    }
+    if (scheduleType === "later" && !time) {
+      toast.info("Please select a time for scheduled streaming.");
+      return;
+    }
+    // check url is valid
+    if (sourceType === "url" && !selectedSource.startsWith("rtmp://") && !selectedSource.startsWith("rtsp://") && !selectedSource.startsWith("http://") && !selectedSource
+    .startsWith("https://")) {
+      toast.info("Please enter a valid  URL.");
+      return;
+    }
+    if (sourceType === "list" && !s3BucketUrls.includes(selectedSource)) {
+      toast.info("Please select a valid video from the list.");
+      return;
+    }
     const payload = {
       date: format(date, "yyyy-MM-dd"),
       scheduleType,
